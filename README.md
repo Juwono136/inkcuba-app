@@ -124,3 +124,8 @@ Use Conventional Commit Comments:
 
 ## Project Members
 - Juwono
+- Dafa Ramadhan Syaidina
+- M. Haramain Asyi Emirryan Emir
+- Wallace Louis Tjang
+- Ida Bagus Kerthyayana Manuaba
+- Raymond Bahana
