@@ -102,7 +102,12 @@ JWT_SECRET=your_jwt_secret
 - `bugfix/<issue-name>` → Fixes bugs/error
 
 ### Commit Convention:
-Use Conventional Commits:
+=> Commit structure format:
+```bash
+git commit -s -m "<commit comment>"
+```
+
+Use Conventional Commit Comments:
 - `feat`: for new features
 - `fix`: for bug fixes
 - `docs`: for documentation updates
