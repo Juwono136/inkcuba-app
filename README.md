@@ -24,8 +24,7 @@ Inkcuba is an application used to collect all portfolios or projects from Binus 
 ### Folder Structure
 ```bash
 inkcuba/
-├── mockup/                 → Mockup and UI website design
-├── docs/                   → Software architecture and system design (Use case, flowchart, activity diagrams, CO/CD Pipeline Schema, etc.)
+├── docs/                   → Software architecture, system design (Use case, flowchart, activity diagrams, CO/CD Pipeline Schema, etc.), mockup and UI website design 
 ├── client/                 → React frontend
 │   ├── node_modules/       → node modules from node packages
 │   ├── public/
