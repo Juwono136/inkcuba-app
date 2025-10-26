@@ -1,0 +1,143 @@
+enum portfolio_type {
+	individual
+	group
+}
+
+
+
+enum portfolio_status {
+	pending
+	approved
+	rejected
+}
+
+
+
+enum user_role {
+	admin
+	student
+	lecturer
+}
+
+
+
+enum user_status {
+	active
+	inactive
+	pending
+}
+
+
+
+enum asset_type {
+	image
+	video
+	document
+	source_code
+	link
+}
+
+
+
+enum status_change {
+	approved
+	rejected
+}
+
+
+
+enum activity_type {
+	create
+	update
+	delete
+	others
+}
+
+Table portfolio [headercolor: #175e7a] {
+	portfolio_id integer [ pk, increment, not null, unique ]
+	title varchar(255) [ not null ]
+	desc text [ not null ]
+	type portfolio_type [ not null, note: 'individual, group' ]
+	student_id integer [ not null ]
+	lecturer_id integer [ not null ]
+	status portfolio_status [ not null, default: pending, note: 'pending, approved, rejected' ]
+	created_at timestamp [ not null ]
+	updated_at timestamp [ not null ]
+}
+
+Table users [headercolor: #175e7a] {
+	user_id integer [ pk, increment, not null, unique ]
+	name varchar(255) [ not null ]
+	email varchar(255) [ not null, unique ]
+	password varchar(255) [ not null ]
+	role user_role [ not null, note: 'admin, student, lecturer' ]
+	status user_status [ not null, default: active, note: 'active, inactive, pending' ]
+	created_at timestamp [ not null ]
+	updated_at timestamp [ not null ]
+}
+
+Table portfolio_members [headercolor: #175e7a] {
+	id integer [ pk, increment, not null, unique ]
+	portfolio_id integer [ not null ]
+	student_id integer [ not null ]
+}
+
+Table portfolio_assets [headercolor: #175e7a] {
+	asset_id integer [ pk, increment, not null, unique ]
+	portfolio_id integer [ not null ]
+	asset_type asset_type [ not null, note: 'image, video, document, source_code, link' ]
+	file_path varchar(255) [ not null ]
+	file_name varchar(255) [ not null ]
+	created_at timestamp [ not null ]
+	uploaded_at timestamp [ not null ]
+}
+
+Table portfolio_feedback [headercolor: #175e7a] {
+	feedback_id integer [ pk, increment, not null, unique ]
+	portfolio_id integer [ not null ]
+	lecturer_id integer [ not null ]
+	feedback_text text [ not null ]
+	status_change status_change
+	created_at timestamp [ not null ]
+	updated_at timestamp [ not null ]
+}
+
+Table activity_log [headercolor: #175e7a] {
+	log_id integer [ pk, increment, not null, unique ]
+	user_id integer [ not null ]
+	activity_type activity_type [ not null, note: 'create, update, delete, others' ]
+	description text [ not null ]
+	timestamp timestamp [ not null ]
+}
+
+Ref fk_portfolio_student_id_users {
+	portfolio.student_id < users.user_id [ delete: no action, update: no action ]
+}
+
+Ref fk_portfolio_lecturer_id_users {
+	portfolio.lecturer_id < users.user_id [ delete: no action, update: no action ]
+}
+
+Ref fk_portfolio_members_portfolio_id_portfolio {
+	portfolio_members.portfolio_id < portfolio.portfolio_id [ delete: no action, update: no action ]
+}
+
+Ref fk_portfolio_members_student_id_users {
+	portfolio_members.student_id > users.user_id [ delete: no action, update: no action ]
+}
+
+Ref fk_portfolio_assets_portfolio_id_portfolio {
+	portfolio_assets.portfolio_id < portfolio.portfolio_id [ delete: no action, update: no action ]
+}
+
+Ref fk_portfolio_feedback_portfolio_id_portfolio {
+	portfolio_feedback.portfolio_id - portfolio.portfolio_id [ delete: no action, update: no action ]
+}
+
+Ref fk_portfolio_feedback_lecturer_id_users {
+	portfolio_feedback.lecturer_id < users.user_id [ delete: no action, update: no action ]
+}
+
+Ref fk_activity_log_user_id_users {
+	activity_log.user_id < users.user_id [ delete: no action, update: no action ]
+}
