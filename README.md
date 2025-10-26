@@ -190,6 +190,8 @@ git commit -s -m "<commit comment>"
 git commit -s -m "feat: login page"
 ```
 
+_**Before pushing the repo, please update the repo to prevent merge conflicts or push rejections using this command: `git pull`**_
+
 Use Conventional Commit Comments:
 - `feat`: for new features
 - `fix`: for bug fixes
