@@ -186,6 +186,9 @@ JWT_SECRET=your_jwt_secret
 => Commit structure format:
 ```bash
 git commit -s -m "<commit comment>"
+
+# Example:
+git commit -s -m "feat: login page"
 ```
 
 Use Conventional Commit Comments:
