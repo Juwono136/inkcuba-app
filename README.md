@@ -67,6 +67,87 @@ Prerequisites:
 - MongoDB (Compass (prodcution) + Atlas (developement))
 - Git
 
+### Entity Relationship & Database Schema Design
+#### Database Schema Design
+![inkcuba_database_design](https://github.com/user-attachments/assets/21b43c60-6186-44ae-bbd8-24f75628ef8f)
+
+#### Database type
+- **Database system:** PostgreSQL (SQL) or MongoDB (NoSQL)
+
+#### Table structure
+#### => portfolio
+| Name        | Type          | Settings                      | References                    | Note                           |
+|-------------|---------------|-------------------------------|-------------------------------|--------------------------------|
+| **portfolio_id** | INTEGER | 🔑 PK, not null, unique, autoincrement |  | |
+| **title** | VARCHAR(255) | not null |  | |
+| **desc** | TEXT | not null |  | |
+| **type** | PORTFOLIO_TYPE | not null |  |individual, group |
+| **student_id** | INTEGER | not null | fk_portfolio_student_id_users | |
+| **lecturer_id** | INTEGER | not null | fk_portfolio_lecturer_id_users | |
+| **status** | PORTFOLIO_STATUS | not null, default: pending |  |pending, approved, rejected |
+| **created_at** | TIMESTAMP | not null |  | |
+| **updated_at** | TIMESTAMP | not null |  | | 
+
+#### => users
+| Name        | Type          | Settings                      | References                    | Note                           |
+|-------------|---------------|-------------------------------|-------------------------------|--------------------------------|
+| **user_id** | INTEGER | 🔑 PK, not null, unique, autoincrement |  | |
+| **name** | VARCHAR(255) | not null |  | |
+| **email** | VARCHAR(255) | not null, unique |  | |
+| **password** | VARCHAR(255) | not null |  | |
+| **role** | USER_ROLE | not null |  |admin, student, lecturer |
+| **status** | USER_STATUS | not null, default: active |  |active, inactive, pending |
+| **created_at** | TIMESTAMP | not null |  | |
+| **updated_at** | TIMESTAMP | not null |  | | 
+
+#### => portfolio_members
+| Name        | Type          | Settings                      | References                    | Note                           |
+|-------------|---------------|-------------------------------|-------------------------------|--------------------------------|
+| **id** | INTEGER | 🔑 PK, not null, unique, autoincrement |  | |
+| **portfolio_id** | INTEGER | not null | fk_portfolio_members_portfolio_id_portfolio | |
+| **student_id** | INTEGER | not null | fk_portfolio_members_student_id_users | | 
+
+#### => portfolio_assets
+| Name        | Type          | Settings                      | References                    | Note                           |
+|-------------|---------------|-------------------------------|-------------------------------|--------------------------------|
+| **asset_id** | INTEGER | 🔑 PK, not null, unique, autoincrement |  | |
+| **portfolio_id** | INTEGER | not null | fk_portfolio_assets_portfolio_id_portfolio | |
+| **asset_type** | ASSET_TYPE | not null |  |image, video, document, source_code, link |
+| **file_path** | VARCHAR(255) | not null |  | |
+| **file_name** | VARCHAR(255) | not null |  | |
+| **created_at** | TIMESTAMP | not null |  | |
+| **uploaded_at** | TIMESTAMP | not null |  | | 
+
+#### => portfolio_feedback
+| Name        | Type          | Settings                      | References                    | Note                           |
+|-------------|---------------|-------------------------------|-------------------------------|--------------------------------|
+| **feedback_id** | INTEGER | 🔑 PK, not null, unique, autoincrement |  | |
+| **portfolio_id** | INTEGER | not null | fk_portfolio_feedback_portfolio_id_portfolio | |
+| **lecturer_id** | INTEGER | not null | fk_portfolio_feedback_lecturer_id_users | |
+| **feedback_text** | TEXT | not null |  | |
+| **status_change** | STATUS_CHANGE | null |  | |
+| **created_at** | TIMESTAMP | not null |  | |
+| **updated_at** | TIMESTAMP | not null |  | | 
+
+#### => activity_log
+| Name        | Type          | Settings                      | References                    | Note                           |
+|-------------|---------------|-------------------------------|-------------------------------|--------------------------------|
+| **log_id** | INTEGER | 🔑 PK, not null, unique, autoincrement |  | |
+| **user_id** | INTEGER | not null | fk_activity_log_user_id_users | |
+| **activity_type** | ACTIVITY_TYPE | not null |  |create, update, delete, others |
+| **description** | TEXT | not null |  | |
+| **timestamp** | TIMESTAMP | not null |  | | 
+
+#### Relationships
+- **portfolio to users**: one_to_many
+- **portfolio to users**: one_to_many
+- **portfolio_members to portfolio**: one_to_many
+- **portfolio_members to users**: many_to_one
+- **portfolio_assets to portfolio**: one_to_many
+- **portfolio_feedback to portfolio**: one_to_one
+- **portfolio_feedback to users**: one_to_many
+- **activity_log to users**: one_to_many
+
 ### Installation Steps:
 1. Clone the repository
 ```bash
