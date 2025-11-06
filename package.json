@@ -1,0 +1,21 @@
+{
+  "name": "inkcuba",
+  "version": "1.0.0",
+  "description": "Student Project Showcase Platform - Frontend",
+  "main": "index.js",
+  "scripts": {
+    "dev": "cd client && npm run dev",
+    "build": "cd client && npm run build",
+    "preview": "cd client && npm run preview",
+    "install:client": "cd client && npm install"
+  },
+  "keywords": [
+    "react",
+    "vite",
+    "frontend",
+    "daisyui"
+  ],
+  "author": "",
+  "license": "ISC"
+}
+
