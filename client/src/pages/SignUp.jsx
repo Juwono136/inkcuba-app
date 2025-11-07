@@ -1,7 +1,7 @@
 import { useMemo, useState } from "react";
 import { toast } from "react-hot-toast";
+import NavBar from "../components/Navbar"; 
 
-{/* Sign Up Page */}
 export default function App() {
   const [form, setForm] = useState({
     name: "",
@@ -18,14 +18,15 @@ export default function App() {
       [k]: e.target.type === "checkbox" ? e.target.checked : e.target.value,
     }));
 
-  // validation + messages
   const errors = useMemo(() => {
     const e = {};
     if (!form.name.trim()) e.name = "Full name is required.";
-    if (!/^[^@]+@binus\.ac\.id$/i.test(form.email || ""))
+    if (!/^[^@]+@binus\.ac\.id$/i.test(form.email || "")) {
       e.email = "Use your BINUS email (@binus.ac.id).";
-    if ((form.password || "").length < 8)
+    }
+    if ((form.password || "").length < 8) {
       e.password = "Password must be at least 8 characters.";
+    }
     if (!form.program) e.program = "Please choose a program.";
     if (!form.agree) e.agree = "You must agree to the Terms and Privacy Policy.";
     return e;
@@ -45,21 +46,13 @@ export default function App() {
 
     toast.success("Account successfully created!");
     setJustCreated(true);
-
     setForm({ name: "", email: "", password: "", program: "", agree: false });
   }
 
   return (
     <div className="min-h-screen flex flex-col bg-base-100">
-      {/* Header */}
-      <header className="border-b border-base-300">
-        <div className="container mx-auto px-4 h-14 flex items-center justify-between">
-          <div className="text-xl font-semibold">Inkcuba</div>
-          <nav className="flex items-center gap-3">
-            <button className="btn btn-ghost btn-sm">Sign In</button>
-          </nav>
-        </div>
-      </header>
+      {/* NavBar */}
+      <NavBar />
 
       {/* Main */}
       <main className="container mx-auto px-4 py-10 flex-1">
@@ -120,8 +113,7 @@ export default function App() {
               onChange={set("program")}
             >
               <option value="">Choose a program</option>
-              <option value="CS">Computer Science </option>
-              {/* add more later */}
+              <option value="CS">Computer Science (CS)</option>
             </select>
           </div>
 
@@ -143,12 +135,15 @@ export default function App() {
           <button
             type="submit"
             className="btn w-full rounded-md py-2"
-            style={{ backgroundColor: "#000000", color: "#F5F5F5", borderColor: "#000000" }}
+            style={{
+              backgroundColor: "#000000",
+              color: "#F5F5F5",
+              borderColor: "#000000",
+            }}
           >
             Create Account
           </button>
 
-          {/* Inline success confirmation */}
           {justCreated && (
             <p className="text-sm text-green-600 text-center">
               Account successfully created.
