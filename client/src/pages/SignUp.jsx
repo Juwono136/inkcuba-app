@@ -69,7 +69,7 @@ export default function App() {
           <div className="space-y-1">
             <label className="block text-sm font-medium">Full Name</label>
             <input
-              className="input input-bordered input-ink w-full"
+              className="input input-bordered input-ink w-full px-3"
               placeholder="Enter your full name"
               value={form.name}
               onChange={set("name")}
@@ -81,7 +81,7 @@ export default function App() {
             <label className="block text-sm font-medium">Email Address</label>
             <input
               type="email"
-              className="input input-bordered input-ink w-full"
+              className="input input-bordered input-ink w-full px-3"
               placeholder="name@binus.ac.id"
               value={form.email}
               onChange={set("email")}
@@ -94,7 +94,7 @@ export default function App() {
             <label className="block text-sm font-medium">Password</label>
             <input
               type="password"
-              className="input input-bordered input-ink w-full"
+              className="input input-bordered input-ink w-full px-3"
               placeholder="Create a strong password"
               value={form.password}
               onChange={set("password")}
@@ -108,12 +108,15 @@ export default function App() {
           <div className="space-y-1">
             <label className="block text-sm font-medium">Program</label>
             <select
-              className="select select-bordered input-ink w-full"
+              className="select select-bordered input-ink w-full px-3"
               value={form.program}
               onChange={set("program")}
             >
               <option value="">Choose a program</option>
-              <option value="CS">Computer Science (CS)</option>
+              <option value="CSC">Computer Science (CSC)</option>
+              <option valu="BIS">Business Information Systems (BIS)</option>
+              <option value="GDNM">Graphic Design (GDNM)</option>
+              <option value="SE">Software Engineering (SE)</option>
             </select>
           </div>
 
