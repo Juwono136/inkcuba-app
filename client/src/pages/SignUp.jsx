@@ -1,6 +1,7 @@
 import { useMemo, useState } from "react";
 import { toast } from "react-hot-toast";
 import NavBar from "../components/Navbar"; 
+import Footer from "../components/Footer";
 
 export default function App() {
   const [form, setForm] = useState({
@@ -116,7 +117,6 @@ export default function App() {
               <option value="CSC">Computer Science (CSC)</option>
               <option valu="BIS">Business Information Systems (BIS)</option>
               <option value="GDNM">Graphic Design (GDNM)</option>
-              <option value="SE">Software Engineering (SE)</option>
             </select>
           </div>
 
@@ -160,9 +160,7 @@ export default function App() {
       </main>
 
       {/* Footer */}
-      <footer className="border-t border-base-300 text-xs py-6 text-center text-base-content/60">
-        © 2025 inkcuba. All rights reserved.
-      </footer>
+      <Footer />
     </div>
   );
 }
