@@ -37,7 +37,7 @@ const Login = () => {
     // In a real app, you would validate credentials with the backend
     if (formData.email && formData.password && formData.agreeToTerms) {
       dispatch(login({ email: formData.email }))
-      navigate('/')
+      navigate('/student-dashboard')
     }
   }
 

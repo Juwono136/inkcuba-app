@@ -1,4 +1,5 @@
 import { useMemo, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import Navbar from '../common/Navbar'
 import Footer from '../common/Footer'
 import {
@@ -13,6 +14,7 @@ import {
 } from 'react-icons/fa'
 
 const StudentDashboard = () => {
+  const navigate = useNavigate()
   const [isModalOpen, setIsModalOpen] = useState(false)
   const [profileForm, setProfileForm] = useState({
     fullName: 'John Doe',
@@ -88,27 +90,40 @@ const StudentDashboard = () => {
   }
 
   const getStatusBadge = (status) => {
-    switch (status) {
-      case 'Approved':
-        return 'badge badge-sm bg-green-100 text-green-700 border-0'
-      case 'In Progress':
-        return 'badge badge-sm bg-amber-100 text-amber-700 border-0'
-      case 'Needs Revision':
-        return 'badge badge-sm bg-rose-100 text-rose-700 border-0'
-      default:
-        return 'badge badge-sm'
+    return 'badge badge-sm badge-outline'
+  }
+
+  const handleProjectClick = (projectId) => {
+    navigate(`/project-status/${projectId}`)
+  }
+
+  const handleActionClick = (e, projectId, actionLabel) => {
+    e.stopPropagation()
+    if (actionLabel === 'View') {
+      navigate(`/view-project/${projectId}`)
+    } else if (actionLabel === 'Edit') {
+      navigate(`/edit-project/${projectId}`)
+    } else if (actionLabel === 'Revise') {
+      navigate(`/revise-project/${projectId}`)
     }
   }
 
   const renderProjectCard = (project, actionLabel) => (
-    <div key={project.id} className="bg-white border border-base-300 rounded-xl p-4 space-y-3">
+    <div
+      key={project.id}
+      className="bg-base-100 border border-base-300 rounded-lg p-4 space-y-3 cursor-pointer hover:shadow-md transition-shadow"
+      onClick={() => handleProjectClick(project.id)}
+    >
       <div>
         <p className="text-sm font-semibold text-base-content">{project.title}</p>
         <p className="text-xs text-base-content/70">{project.description}</p>
       </div>
       <div className="flex items-center justify-between text-sm">
         <span className={getStatusBadge(project.status)}>{project.status}</span>
-        <button className="btn btn-xs bg-base-200 text-base-content border-base-300 hover:bg-base-300">
+        <button
+          className="btn btn-xs bg-base-200 text-base-content border-base-300 hover:bg-base-300"
+          onClick={(e) => handleActionClick(e, project.id, actionLabel)}
+        >
           {actionLabel}
         </button>
       </div>
@@ -125,12 +140,12 @@ const StudentDashboard = () => {
   }
 
   return (
-    <div className="min-h-screen flex flex-col bg-base-200">
+    <div className="min-h-screen flex flex-col">
       <Navbar />
       <main className="flex-grow py-10 px-4 lg:px-8">
         <div className="max-w-7xl mx-auto space-y-8">
           {/* Profile header */}
-          <section className="bg-base-100 rounded-2xl shadow-sm p-6 flex flex-col md:flex-row md:items-center md:justify-between gap-6">
+          <section className="bg-base-100 rounded-lg shadow-md p-6 flex flex-col md:flex-row md:items-center md:justify-between gap-6">
             <div className="flex items-center gap-4">
               <div className="avatar">
                 <div className="w-20 rounded-full bg-base-200">
@@ -157,7 +172,7 @@ const StudentDashboard = () => {
           </section>
 
           {/* Submit new project */}
-          <section className="bg-base-100 rounded-2xl shadow-sm p-8 text-center flex flex-col items-center gap-4">
+          <section className="bg-base-100 rounded-lg shadow-md p-8 text-center flex flex-col items-center gap-4">
             <div className="w-20 h-20 rounded-full bg-base-200 flex items-center justify-center">
               <FaUpload className="w-8 h-8 text-base-content" />
             </div>
@@ -174,9 +189,9 @@ const StudentDashboard = () => {
 
           {/* Project sections */}
           <section className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            <div className="bg-base-100 rounded-2xl shadow-sm p-5 space-y-4">
+            <div className="bg-base-100 rounded-lg shadow-md p-5 space-y-4">
               <div className="flex items-center gap-2 text-base-content">
-                <FaCheckCircle className="text-green-500" />
+                <FaCheckCircle className="text-black-500" />
                 <h4 className="text-lg font-semibold">Approved Projects</h4>
               </div>
               <div className="space-y-4">
@@ -184,9 +199,9 @@ const StudentDashboard = () => {
               </div>
             </div>
 
-            <div className="bg-base-100 rounded-2xl shadow-sm p-5 space-y-4">
+            <div className="bg-base-100 rounded-lg shadow-md p-5 space-y-4">
               <div className="flex items-center gap-2 text-base-content">
-                <FaHourglassHalf className="text-amber-500" />
+                <FaHourglassHalf className="text-black-500" />
                 <h4 className="text-lg font-semibold">In Review</h4>
               </div>
               <div className="space-y-4">
@@ -194,9 +209,9 @@ const StudentDashboard = () => {
               </div>
             </div>
 
-            <div className="bg-base-100 rounded-2xl shadow-sm p-5 space-y-4">
+            <div className="bg-base-100 rounded-lg shadow-md p-5 space-y-4">
               <div className="flex items-center gap-2 text-base-content">
-                <FaExclamationTriangle className="text-rose-500" />
+                <FaExclamationTriangle className="text-black-500" />
                 <h4 className="text-lg font-semibold">Need for Revision</h4>
               </div>
               <div className="space-y-4">
@@ -210,7 +225,7 @@ const StudentDashboard = () => {
 
       {isModalOpen && (
         <div className="fixed inset-0 bg-black/40 z-50 flex items-center justify-center px-4">
-          <div className="bg-base-100 rounded-2xl shadow-xl w-full max-w-3xl">
+          <div className="bg-base-100 rounded-lg shadow-xl w-full max-w-3xl">
             <div className="flex items-center justify-between px-6 py-4 border-b border-base-300">
               <h3 className="text-xl font-semibold text-base-content">Edit Student Profile</h3>
               <button className="btn btn-ghost btn-sm btn-circle" onClick={closeModal}>
