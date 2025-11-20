@@ -3,7 +3,7 @@ import { useEffect } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { setFilters, setCurrentPage } from '../features/projects/projectSlice'
 import { dummyProjects, dummyCategories } from '../utils/dummyData'
-import Header from '../common/Header'
+import Navbar from '../common/Navbar'
 import Footer from '../common/Footer'
 import FormattedDate from '../common/Date'
 import { FaUser, FaChevronDown, FaCog, FaCode, FaDesktop, FaChartBar } from 'react-icons/fa'
@@ -69,7 +69,7 @@ const Home = () => {
 
   return (
     <div className="min-h-screen flex flex-col">
-      <Header />
+      <Navbar />
       <main className="flex-grow">
         {/* Hero Section */}
         <section className="py-16 px-4 lg:px-8">
@@ -83,7 +83,7 @@ const Home = () => {
               projects
             </p>
             <div className="flex flex-col sm:flex-row gap-4 justify-center">
-              <Link to="/select-role" className="btn btn-primary text-white">
+              <Link to="/select-role" className="btn bg-black text-white hover:bg-black/90">
                 Get Started
               </Link>
               <Link to="/projects" className="btn btn-outline">

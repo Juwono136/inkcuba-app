@@ -1,5 +1,7 @@
 import { useNavigate } from 'react-router-dom'
-import Header from '../common/Header'
+import { useDispatch } from 'react-redux'
+import { setSelectedRole } from '../features/auth/authSlice'
+import Navbar from '../common/Navbar'
 import Footer from '../common/Footer'
 import {
   FaGraduationCap,
@@ -9,11 +11,13 @@ import {
 
 const SelectRoles = () => {
   const navigate = useNavigate()
+  const dispatch = useDispatch()
 
   const roles = [
     {
       id: 1,
       title: 'Student Portal',
+      roleName: 'Student',
       description: 'Showcase your projects that have been approved.',
       icon: FaGraduationCap,
       path: '/student-portal',
@@ -21,6 +25,7 @@ const SelectRoles = () => {
     {
       id: 2,
       title: 'Lecturer Portal',
+      roleName: 'Lecturer',
       description: 'Review and evaluate student projects that have been approved.',
       icon: FaFileAlt,
       path: '/lecturer-portal',
@@ -28,19 +33,21 @@ const SelectRoles = () => {
     {
       id: 3,
       title: 'Admin Portal',
+      roleName: 'Admin',
       description: 'Manage users and system settings.',
       icon: FaUserCog,
       path: '/admin-portal',
     },
   ]
 
-  const handleRoleSelect = (path) => {
-    navigate(path)
+  const handleRoleSelect = (role) => {
+    dispatch(setSelectedRole(role.roleName))
+    navigate('/login')
   }
 
   return (
     <div className="min-h-screen flex flex-col">
-      <Header />
+      <Navbar />
       <main className="flex-grow py-16 px-4 lg:px-8">
         <div className="max-w-4xl mx-auto">
           <div className="text-center mb-12">
@@ -59,7 +66,7 @@ const SelectRoles = () => {
                 <div
                   key={role.id}
                   className="card bg-base-100 shadow-md hover:shadow-lg transition-shadow cursor-pointer border border-base-300"
-                  onClick={() => handleRoleSelect(role.path)}
+                  onClick={() => handleRoleSelect(role)}
                 >
                   <div className="card-body items-center text-center py-8">
                     <div className="w-20 h-20 rounded-full bg-base-200 flex items-center justify-center mb-4">

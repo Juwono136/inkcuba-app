@@ -1,8 +1,11 @@
 import { Link, useLocation } from 'react-router-dom'
+import { useSelector } from 'react-redux'
 import logo from '../assets/inkcuba.png'
+import { FaPlus, FaUser } from 'react-icons/fa'
 
-const Header = () => {
+const Navbar = () => {
   const location = useLocation()
+  const { isAuthenticated } = useSelector((state) => state.auth)
 
   const isActive = (path) => {
     return location.pathname === path
@@ -33,6 +36,14 @@ const Header = () => {
             Projects
           </Link>
           <Link
+            to="/student-dashboard"
+            className={`text-base ${
+              isActive('/student-dashboard') ? 'font-semibold' : 'text-base-content/70'
+            } hover:text-base-content`}
+          >
+            Dashboard
+          </Link>
+          <Link
             to="/categories"
             className={`text-base ${
               isActive('/categories') ? 'font-semibold' : 'text-base-content/70'
@@ -51,17 +62,29 @@ const Header = () => {
         </nav>
       </div>
       <div className="flex items-center gap-4">
-        <div className="hidden md:flex gap-2">
-          <Link to="/select-role" className="btn btn-outline btn-sm">
-            Login
-          </Link>
-          <Link to="/select-role" className="btn btn-primary btn-sm text-white">
-            Sign Up
-          </Link>
-        </div>
+        {isAuthenticated ? (
+          <div className="flex items-center gap-4">
+            <button className="btn btn-ghost btn-sm btn-circle">
+              <FaPlus className="w-5 h-5" />
+            </button>
+            <button className="btn btn-ghost btn-sm btn-circle">
+              <FaUser className="w-5 h-5" />
+            </button>
+          </div>
+        ) : (
+          <div className="hidden md:flex gap-2">
+            <Link to="/select-role" className="btn btn-ghost btn-sm">
+              Sign In
+            </Link>
+            <Link to="/select-role" className="btn bg-black text-white hover:bg-black/90 btn-sm">
+              Get Started
+            </Link>
+          </div>
+        )}
       </div>
     </header>
   )
 }
 
-export default Header
+export default Navbar
+

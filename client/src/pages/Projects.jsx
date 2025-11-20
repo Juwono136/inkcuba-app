@@ -2,7 +2,7 @@ import { useState, useEffect, useMemo } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { fetchProjects, setFilters, resetFilters, setCurrentPage } from '../features/projects/projectSlice'
 import { dummyProjects, programs, courses } from '../utils/dummyData'
-import Header from '../common/Header'
+import Navbar from '../common/Navbar'
 import Footer from '../common/Footer'
 import Loader from '../common/Loader'
 import FormattedDate from '../common/Date'
@@ -121,7 +121,7 @@ const Projects = () => {
 
   return (
     <div className="min-h-screen flex flex-col">
-      <Header />
+      <Navbar />
       <main className="flex-grow py-8 px-4 lg:px-8">
         <div className="max-w-7xl mx-auto">
           {/* Page Header */}
@@ -200,7 +200,7 @@ const Projects = () => {
             <div className="flex flex-col sm:flex-row gap-4 justify-between">
               <div className="flex gap-4">
                 <button
-                  className="btn btn-primary"
+                  className="btn bg-black text-white hover:bg-black/90"
                   onClick={handleApplyFilters}
                 >
                   <FaFilter className="w-4 h-4 mr-2" />
@@ -236,7 +236,7 @@ const Projects = () => {
               <div className="flex gap-2">
                 <button
                   className={`btn btn-sm btn-square ${
-                    viewMode === 'grid' ? 'btn-primary' : 'btn-outline'
+                    viewMode === 'grid' ? 'bg-black text-white hover:bg-black/90' : 'btn-outline'
                   }`}
                   onClick={() => setViewMode('grid')}
                 >
@@ -244,7 +244,7 @@ const Projects = () => {
                 </button>
                 <button
                   className={`btn btn-sm btn-square ${
-                    viewMode === 'list' ? 'btn-primary' : 'btn-outline'
+                    viewMode === 'list' ? 'bg-black text-white hover:bg-black/90' : 'btn-outline'
                   }`}
                   onClick={() => setViewMode('list')}
                 >
@@ -342,7 +342,7 @@ const Projects = () => {
                     <button
                       key={page}
                       className={`btn btn-sm ${
-                        currentPage === page ? 'btn-primary' : ''
+                        currentPage === page ? 'bg-black text-white hover:bg-black/90' : ''
                       }`}
                       onClick={() => handlePageChange(page)}
                     >
