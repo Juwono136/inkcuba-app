@@ -1,8 +1,8 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { UserIcon, UserGroupIcon } from "@heroicons/react/24/outline";
-import NavBar from "../components/Navbar";
-import Footer from "../components/Footer";
+import NavBar from "../commons/Navbar";
+import Footer from "../commons/Footer";
 
 export default function ChooseSubmission() {
   const navigate = useNavigate();
