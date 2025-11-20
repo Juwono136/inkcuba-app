@@ -21,7 +21,7 @@ export default function ReviewProjectCard({ project, onReview }) {
         {project.description}
       </p>
 
-      {/* Submission Date and Button - Side by Side */}
+      {/* Submission Date and Button */}
       <div className="flex items-center justify-between">
         <span className="text-xs text-gray-500">
           Submitted: {project.submittedDate
@@ -33,7 +33,7 @@ export default function ReviewProjectCard({ project, onReview }) {
             : 'N/A'}
         </span>
         
-        {/* Action Button - Made slightly bigger */}
+        {/* Action Button */}
         <button
           onClick={() => onReview(project)}
           className="px-6 py-2 bg-gray-800 text-white rounded-md hover:bg-gray-900 transition-colors text-sm font-medium"

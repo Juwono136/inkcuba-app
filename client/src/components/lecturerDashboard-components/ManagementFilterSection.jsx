@@ -149,7 +149,7 @@ export default function ManagementFilterSection({
         </div>
       </div>
 
-      {/* Project Type Filter - Separate Row */}
+      {/* Project Type Filter */}
       <div className="mt-4">
         <label className="block text-sm font-medium text-gray-700 mb-2">
           Project Type

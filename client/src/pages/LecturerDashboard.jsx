@@ -1,12 +1,8 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-hot-toast";
-
-// Common components
 import NavBar from "../commons/Navbar";
 import Footer from "../commons/Footer";
-
-// Page-specific components
 import ManagementFilterSection from "../components/lecturerDashboard-components/ManagementFilterSection";
 import ProjectColumn from "../components/lecturerDashboard-components/ProjectColumn";
 
@@ -42,7 +38,7 @@ export default function LecturerDashboard() {
       
       const data = await response.json();
       
-      // Separate projects by status (only approved and awaiting)
+      // Separate projects by status
       const approved = data.filter(p => p.status === 'approved');
       const awaiting = data.filter(p => p.status === 'awaiting_approval');
       
@@ -74,12 +70,10 @@ export default function LecturerDashboard() {
   };
 
   const handleReviewProject = (project) => {
-    // Navigate to project detail page for review
     navigate(`/project-review/${project._id || project.id}`);
   };
 
   const handleViewProject = (project) => {
-    // Navigate to project detail page (read-only)
     navigate(`/project-detail/${project._id || project.id}`);
   };
 

@@ -51,7 +51,7 @@ export default function Navbar() {
     <header className="sticky top-0 z-40 bg-white/80 backdrop-blur border-b border-gray-300">
       <nav className="container mx-auto px-4 h-16 flex items-center justify-between">
         <div className="flex items-center gap-6">
-          {/* Mobile menu button - moved to left */}
+          {/* Mobile menu button */}
           <button
             className="btn btn-ghost md:hidden"
             aria-label="Toggle menu"

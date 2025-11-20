@@ -21,7 +21,7 @@ export default function ApprovedProjectCard({ project, onView }) {
         {project.description}
       </p>
 
-      {/* Approved Date and Button - Side by Side */}
+      {/* Approved Date and Button */}
       <div className="flex items-center justify-between">
         <span className="text-xs text-gray-500">
           Approved: {project.reviewedDate
@@ -39,7 +39,7 @@ export default function ApprovedProjectCard({ project, onView }) {
             : 'N/A'}
         </span>
         
-        {/* Action Button - Made slightly bigger */}
+        {/* Action Button */}
         <button
           onClick={() => onView(project)}
           className="px-6 py-2 bg-gray-800 text-white rounded-md hover:bg-gray-900 transition-colors text-sm font-medium"

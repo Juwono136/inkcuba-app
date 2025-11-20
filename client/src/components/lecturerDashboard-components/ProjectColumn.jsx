@@ -11,7 +11,7 @@ export default function ProjectColumn({
   loading 
 }) {
   const [currentPage, setCurrentPage] = useState(1);
-  const itemsPerPage = 4; // Changed from 3 to 4
+  const itemsPerPage = 4;
 
   // Determine empty state message based on type
   const getEmptyMessage = () => {
@@ -32,7 +32,7 @@ export default function ProjectColumn({
   const endIndex = startIndex + itemsPerPage;
   const currentProjects = projects.slice(startIndex, endIndex);
 
-  // Reset to page 1 when projects change
+  
   const handlePageChange = (page) => {
     setCurrentPage(page);
   };
@@ -49,7 +49,7 @@ export default function ProjectColumn({
         </h2>
       </div>
 
-      {/* Extended Box - No scrolling, increased height */}
+      {/* Extended Box */}
       <div className="border border-gray-300 rounded-lg bg-white flex flex-col h-[900px]">
         {/* Loading State */}
         {loading ? (
@@ -82,7 +82,7 @@ export default function ProjectColumn({
           </div>
         ) : (
           <>
-            {/* Project Cards - No scrolling, all 4 cards visible */}
+            {/* Project Cards */}
             <div className="p-6 space-y-6 flex-1 flex flex-col justify-start">
               {currentProjects.map((project) => (
                 type === 'approved' || type === 'revision' ? (
