@@ -52,7 +52,7 @@ export default function ManagementFilterSection({
           <input
             type="text"
             placeholder="Search by project name, student..."
-            className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500"
+            className="w-full pl-10 pr-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-900"
             value={searchQuery}
             onChange={(e) => onSearchChange(e.target.value)}
           />
@@ -67,14 +67,14 @@ export default function ManagementFilterSection({
             Batch Program
           </label>
           <select
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white"
+            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-900 bg-white"
             value={filters.batch}
             onChange={(e) => onFilterChange("batch", e.target.value)}
           >
             <option value="">All Batches</option>
-            <option value="2025">2025</option>
-            <option value="2024">2024</option>
-            <option value="2023">2023</option>
+            <option value="B25">B25</option>
+            <option value="B24">B24</option>
+            <option value="B23">B23</option>
           </select>
         </div>
 
@@ -84,7 +84,7 @@ export default function ManagementFilterSection({
             Course
           </label>
           <select
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white"
+            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-900 bg-white"
             value={filters.course}
             onChange={(e) => onFilterChange("course", e.target.value)}
           >
@@ -120,7 +120,7 @@ export default function ManagementFilterSection({
             Program
           </label>
           <select
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white"
+            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-900 bg-white"
             value={filters.program}
             onChange={(e) => onFilterChange("program", e.target.value)}
           >
@@ -138,7 +138,7 @@ export default function ManagementFilterSection({
             Sort by
           </label>
           <select
-            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white"
+            className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-900 bg-white"
             value={filters.sortBy}
             onChange={(e) => onFilterChange("sortBy", e.target.value)}
           >
@@ -155,7 +155,7 @@ export default function ManagementFilterSection({
           Project Type
         </label>
         <select
-          className="w-full md:w-64 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white"
+          className="w-full md:w-64 px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-900 bg-white"
           value={filters.projectType}
           onChange={(e) => onFilterChange("projectType", e.target.value)}
         >

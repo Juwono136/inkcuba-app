@@ -1,7 +1,12 @@
 require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
-const { MongoClient, ObjectId } = require('mongodb');
+const { connectDB, closeDB } = require('./config/database');
+
+// Import routes
+const userRoutes = require('./routes/userRoutes');
+const activityRoutes = require('./routes/activityRoutes');
+const projectRoutes = require('./routes/projectRoutes');
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -10,78 +15,15 @@ const PORT = process.env.PORT || 5000;
 app.use(cors());
 app.use(express.json());
 
-// MongoDB connection
-let db;
-const client = new MongoClient(process.env.MONGODB_URI);
-
-async function connectDB() {
-  try {
-    await client.connect();
-    db = client.db('inkcuba');
-    console.log('Connected to MongoDB Atlas');
-  } catch (error) {
-    console.error('MongoDB connection error:', error);
-    process.exit(1);
-  }
-}
-
-// Health check
+// Health check endpoint
 app.get('/api/health', (req, res) => {
   res.json({ status: 'ok', message: 'InkCuba API is running' });
 });
 
-// Get all projects
-app.get('/api/projects', async (req, res) => {
-  try {
-    const projects = await db.collection('projects').find({}).toArray();
-    res.json(projects);
-  } catch (error) {
-    console.error('Error fetching projects:', error);
-    res.status(500).json({ error: 'Failed to fetch projects' });
-  }
-});
-
-// Get single project by ID
-app.get('/api/projects/:id', async (req, res) => {
-  try {
-    const project = await db.collection('projects').findOne({
-      _id: new ObjectId(req.params.id)
-    });
-    
-    if (!project) {
-      return res.status(404).json({ error: 'Project not found' });
-    }
-    
-    res.json(project);
-  } catch (error) {
-    console.error('Error fetching project:', error);
-    res.status(500).json({ error: 'Failed to fetch project' });
-  }
-});
-
-// Get filtered projects
-app.post('/api/projects/filter', async (req, res) => {
-  try {
-    const { batch, program, course, search } = req.body;
-    const query = {};
-
-    if (batch) query.batch = batch;
-    if (program) query.program = program;
-    if (course) query.course = course;
-    if (search) {
-      query.$or = [
-        { title: { $regex: search, $options: 'i' } },
-        { description: { $regex: search, $options: 'i' } }
-      ];
-    }
-
-    const projects = await db.collection('projects').find(query).toArray();
-    res.json(projects);
-  } catch (error) {
-    console.error('Error filtering projects:', error);
-    res.status(500).json({ error: 'Failed to filter projects' });
-  }
-});
+// Routes
+app.use('/api/users', userRoutes);
+app.use('/api/activities', activityRoutes);
+app.use('/api/projects', projectRoutes);
 
 // Start server
 connectDB().then(() => {
@@ -90,9 +32,9 @@ connectDB().then(() => {
   });
 });
 
-// Shutdown
+// Graceful shutdown
 process.on('SIGINT', async () => {
-  console.log('Server Shutting down...');
-  await client.close();
+  console.log('Server shutting down...');
+  await closeDB();
   process.exit(0);
 });

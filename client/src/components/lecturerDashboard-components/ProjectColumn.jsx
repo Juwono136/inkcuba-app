@@ -6,7 +6,7 @@ export default function ProjectColumn({
   title, 
   count, 
   projects, 
-  type, // 'approved', 'awaiting', or 'revision'
+  type, // 'approved' or 'pending'
   onAction,
   loading 
 }) {
@@ -16,10 +16,8 @@ export default function ProjectColumn({
   // Determine empty state message based on type
   const getEmptyMessage = () => {
     switch(type) {
-      case 'awaiting':
+      case 'pending':
         return 'No projects awaiting review at the moment.';
-      case 'revision':
-        return 'No projects need revision.';
       case 'approved':
       default:
         return 'No approved projects yet.';
@@ -32,7 +30,6 @@ export default function ProjectColumn({
   const endIndex = startIndex + itemsPerPage;
   const currentProjects = projects.slice(startIndex, endIndex);
 
-  
   const handlePageChange = (page) => {
     setCurrentPage(page);
   };
@@ -85,15 +82,15 @@ export default function ProjectColumn({
             {/* Project Cards */}
             <div className="p-6 space-y-6 flex-1 flex flex-col justify-start">
               {currentProjects.map((project) => (
-                type === 'approved' || type === 'revision' ? (
+                type === 'approved' ? (
                   <ApprovedProjectCard
-                    key={project._id || project.id}
+                    key={project._id}
                     project={project}
                     onView={() => onAction(project)}
                   />
                 ) : (
                   <ReviewProjectCard
-                    key={project._id || project.id}
+                    key={project._id}
                     project={project}
                     onReview={() => onAction(project)}
                   />

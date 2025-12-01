@@ -6,12 +6,33 @@ import Footer from "../commons/Footer";
 import ManagementFilterSection from "../components/lecturerDashboard-components/ManagementFilterSection";
 import ProjectColumn from "../components/lecturerDashboard-components/ProjectColumn";
 
+const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:5000';
+
+// Available lecturers for simulation
+const LECTURERS = [
+  { name: "Dr. Sarah Johnson", email: "sarah.johnson@binus.ac.id" },
+  { name: "Prof. Michael Chen", email: "michael.chen@binus.ac.id" },
+  { name: "Dr. Lisa Anderson", email: "lisa.anderson@binus.ac.id" },
+  { name: "Prof. Robert Taylor", email: "robert.taylor@binus.ac.id" },
+  { name: "Dr. Amanda Lee", email: "amanda.lee@binus.ac.id" },
+  { name: "Prof. James Wilson", email: "james.wilson@binus.ac.id" },
+  { name: "Dr. Rachel Green", email: "rachel.green@binus.ac.id" },
+  { name: "Prof. Kevin Park", email: "kevin.park@binus.ac.id" },
+];
+
 export default function LecturerDashboard() {
   const navigate = useNavigate();
   const [approvedProjects, setApprovedProjects] = useState([]);
-  const [awaitingProjects, setAwaitingProjects] = useState([]);
+  const [pendingProjects, setPendingProjects] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState("");
+  
+  // Simulated logged-in lecturer (stored in localStorage for persistence)
+  const [currentLecturer, setCurrentLecturer] = useState(() => {
+    const saved = localStorage.getItem('simulatedLecturer');
+    return saved ? JSON.parse(saved) : LECTURERS[0];
+  });
+
   const [filters, setFilters] = useState({
     batch: "",
     course: "",
@@ -20,30 +41,34 @@ export default function LecturerDashboard() {
     projectType: "",
   });
 
+  // Handle lecturer change (for simulation)
+  const handleLecturerChange = (email) => {
+    const lecturer = LECTURERS.find(l => l.email === email);
+    if (lecturer) {
+      setCurrentLecturer(lecturer);
+      localStorage.setItem('simulatedLecturer', JSON.stringify(lecturer));
+      toast.success(`Now viewing as ${lecturer.name}`);
+    }
+  };
+
   // Fetch projects from API
   useEffect(() => {
     fetchProjects();
-  }, []);
+  }, [currentLecturer]);
 
   const fetchProjects = async () => {
     try {
       setLoading(true);
       
-      // Fetch all projects
-      const response = await fetch('http://localhost:5000/api/projects');
+      const approvedRes = await fetch(`${API_URL}/api/projects?status=approved&assignedLecturerEmail=${currentLecturer.email}`);
+      const approvedData = await approvedRes.json();
+      const pendingRes = await fetch(`${API_URL}/api/projects?status=awaiting_approval&assignedLecturerEmail=${currentLecturer.email}`);
+      const pendingData = await pendingRes.json();
+      const revisionRes = await fetch(`${API_URL}/api/projects?status=needs_revision&assignedLecturerEmail=${currentLecturer.email}`);
+      const revisionData = await revisionRes.json();
       
-      if (!response.ok) {
-        throw new Error('Failed to fetch projects');
-      }
-      
-      const data = await response.json();
-      
-      // Separate projects by status
-      const approved = data.filter(p => p.status === 'approved');
-      const awaiting = data.filter(p => p.status === 'awaiting_approval');
-      
-      setApprovedProjects(approved);
-      setAwaitingProjects(awaiting);
+      setApprovedProjects(approvedData);
+      setPendingProjects([...pendingData, ...revisionData]);
       
     } catch (error) {
       console.error('Error fetching projects:', error);
@@ -70,11 +95,11 @@ export default function LecturerDashboard() {
   };
 
   const handleReviewProject = (project) => {
-    navigate(`/project-review/${project._id || project.id}`);
+    navigate(`/review-project/${project._id}`);
   };
 
   const handleViewProject = (project) => {
-    navigate(`/project-detail/${project._id || project.id}`);
+    navigate(`/review-project/${project._id}`);
   };
 
   // Filter and sort projects
@@ -85,33 +110,36 @@ export default function LecturerDashboard() {
     if (searchQuery) {
       filtered = filtered.filter(
         (p) =>
-          p.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          p.author?.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-          p.description.toLowerCase().includes(searchQuery.toLowerCase())
+          p.title?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          p.submitter?.name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+          p.description?.toLowerCase().includes(searchQuery.toLowerCase())
       );
     }
 
     // Apply filters
     if (filters.batch) {
-      filtered = filtered.filter((p) => p.batch === filters.batch);
+      filtered = filtered.filter((p) => p.academicInfo?.batch === filters.batch);
     }
     if (filters.course) {
-      filtered = filtered.filter((p) => p.course === filters.course);
+      filtered = filtered.filter((p) => p.academicInfo?.course === filters.course);
     }
     if (filters.program) {
-      filtered = filtered.filter((p) => p.program === filters.program);
+      filtered = filtered.filter((p) => p.academicInfo?.program === filters.program);
     }
     if (filters.projectType) {
-      filtered = filtered.filter((p) => p.projectType === filters.projectType);
+      filtered = filtered.filter((p) => {
+        const hasCollaborators = p.teamCollaborators && p.teamCollaborators.length > 0;
+        return filters.projectType === 'group' ? hasCollaborators : !hasCollaborators;
+      });
     }
 
     // Apply sorting
     filtered.sort((a, b) => {
       switch (filters.sortBy) {
         case 'recent':
-          return new Date(b.date) - new Date(a.date);
+          return new Date(b.submittedAt) - new Date(a.submittedAt);
         case 'oldest':
-          return new Date(a.date) - new Date(b.date);
+          return new Date(a.submittedAt) - new Date(b.submittedAt);
         case 'name':
           return a.title.localeCompare(b.title);
         default:
@@ -123,7 +151,7 @@ export default function LecturerDashboard() {
   };
 
   const filteredApprovedProjects = filterAndSortProjects(approvedProjects);
-  const filteredAwaitingProjects = filterAndSortProjects(awaitingProjects);
+  const filteredPendingProjects = filterAndSortProjects(pendingProjects);
 
   return (
     <div className="min-h-screen flex flex-col bg-white">
@@ -134,12 +162,32 @@ export default function LecturerDashboard() {
       <main className="container mx-auto px-4 py-8 flex-1">
         {/* Page Header */}
         <div className="mb-6">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">
-            Project Management
-          </h1>
-          <p className="text-gray-600">
-            Review and manage student project submissions
-          </p>
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <div>
+              <h1 className="text-3xl font-bold text-gray-900 mb-2">
+                Project Management
+              </h1>
+              <p className="text-gray-600">
+                Review and manage student project submissions
+              </p>
+            </div>
+            
+            {/* Lecturer Simulator - subtle */}
+            <div className="flex items-center gap-2 text-xs text-gray-400">
+              <span>as:</span>
+              <select
+                value={currentLecturer.email}
+                onChange={(e) => handleLecturerChange(e.target.value)}
+                className="px-2 py-1 text-xs text-gray-500 bg-transparent border-none cursor-pointer hover:text-gray-700 focus:outline-none"
+              >
+                {LECTURERS.map((lecturer) => (
+                  <option key={lecturer.email} value={lecturer.email}>
+                    {lecturer.name}
+                  </option>
+                ))}
+              </select>
+            </div>
+          </div>
         </div>
 
         {/* Filter Section */}
@@ -156,6 +204,7 @@ export default function LecturerDashboard() {
           {/* Approved Projects Column */}
           <div className="h-full">
             <ProjectColumn
+              key={`approved-${currentLecturer.email}`}
               title="Approved Projects"
               count={filteredApprovedProjects.length}
               projects={filteredApprovedProjects}
@@ -165,13 +214,14 @@ export default function LecturerDashboard() {
             />
           </div>
 
-          {/* Awaiting Approval Projects Column */}
+          {/* Pending Review Projects Column */}
           <div className="h-full">
             <ProjectColumn
+              key={`pending-${currentLecturer.email}`}
               title="In Need of Review"
-              count={filteredAwaitingProjects.length}
-              projects={filteredAwaitingProjects}
-              type="awaiting"
+              count={filteredPendingProjects.length}
+              projects={filteredPendingProjects}
+              type="pending"
               onAction={handleReviewProject}
               loading={loading}
             />

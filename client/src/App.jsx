@@ -3,6 +3,11 @@ import SignUp from "./pages/SignUp";
 import ProjectBrowse from "./pages/ProjectBrowse";
 import ChooseSubmission from "./pages/ChooseSubmission";
 import LecturerDashboard from "./pages/LecturerDashboard";
+import LecturerProfile from "./pages/LecturerProfile";
+import UserManagement from "./pages/UserManagement";
+import ActivityLog from "./pages/ActivityLog";
+import EditAdminProfile from './pages/EditAdminProfile';
+import ReviewProjectSubmission from './pages/ReviewProjectSubmission';
 
 export default function App() {
   return (
@@ -12,6 +17,12 @@ export default function App() {
       <Route path="/choose-submission" element={<ChooseSubmission />} />
       <Route path="/project-browse" element={<ProjectBrowse />} />
       <Route path="/lecturer-dashboard" element={<LecturerDashboard />} />
+      <Route path="/review-project/:id" element={<ReviewProjectSubmission />} />
+      <Route path="/lecturer-profile/:email" element={<LecturerProfile />} />
+      <Route path="/user-management" element={<UserManagement />}>
+        <Route path="edit-profile" element={<EditAdminProfile />} />
+      </Route>
+      <Route path="/activity-log" element={<ActivityLog />} />
     </Routes>
   );
 }
