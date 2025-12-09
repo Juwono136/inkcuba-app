@@ -104,7 +104,7 @@ Prerequisites:
 |-------------|---------------|-------------------------------|-------------------------------|--------------------------------|
 | **id** | INTEGER | 🔑 PK, not null, unique, autoincrement |  | |
 | **portfolio_id** | INTEGER | not null | fk_portfolio_members_portfolio_id_portfolio | |
-| **student_id** | INTEGER | not null | fk_portfolio_members_student_id_users | | 
+| **student_id** | INTEGER | not null | fk_portfolio_members_student_id_users | Declare array | 
 
 #### => portfolio_assets
 | Name        | Type          | Settings                      | References                    | Note                           |
@@ -189,6 +189,8 @@ git commit -s -m "<commit comment>"
 # Example:
 git commit -s -m "feat: login page"
 ```
+
+_**Before pushing the repo, please update the repo to prevent merge conflicts or push rejections using this command: `git pull`**_
 
 Use Conventional Commit Comments:
 - `feat`: for new features
