@@ -2,10 +2,12 @@ import express from "express";
 import cors from "cors";
 import helmet from "helmet";
 import morgan from "morgan";
-import mongoSanitize from "express-mongo-sanitize";
+// import mongoSanitize from "express-mongo-sanitize";
 import globalErrorHandler from "./middlewares/errorMiddleware.js";
 import AppError from "./utils/appError.js";
 import { StatusCodes } from "http-status-codes";
+
+import authRoutes from "./routes/authRoutes.js";
 
 const app = express();
 
@@ -24,12 +26,14 @@ app.use(cors());
 app.use(express.json({ limit: "10kb" })); // Limit max body to 10kb for plain json
 
 // Data sanitization against NoSQL query injection
-app.use(mongoSanitize());
+// app.use(mongoSanitize());
 
 // Routes
 app.get("/", (req, res) => {
   res.send("API InkCuba is running...");
 });
+
+app.use("/api/v1/auth", authRoutes);
 
 // Handle Undefined Routes (404)
 app.all(/(.*)/, (req, res, next) => {

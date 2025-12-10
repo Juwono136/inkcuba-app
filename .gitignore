@@ -6,6 +6,7 @@ client/node_modules
 server/node_modules
 client/.env
 server/.env
+server/seeder.js
 .env
 /.pnp
 .pnp.js

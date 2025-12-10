@@ -13,37 +13,38 @@ const userSchema = new mongoose.Schema(
       required: [true, "Please provide an email"],
       unique: true,
       lowercase: true,
-      match: [/^\w+([.-]?\w+)*@\w+([.-]?\w+)*(\.\w{2,3})+$/, "Please provide a valid email"],
+      match: [
+        /^[a-zA-Z0-9._%+-]+@(binus\.ac\.id|binus\.edu)$/,
+        "Please provide a valid BINUS email (@binus.ac.id or @binus.edu)",
+      ],
     },
     password: {
       type: String,
       required: [true, "Please provide a password"],
       minlength: 6,
-      select: false, // Password tidak akan ikut terambil saat query user biasa (Security)
+      select: false,
     },
     role: {
       type: String,
       enum: ["student", "lecturer", "admin"],
       default: "student",
     },
-    // ID Unik Akademik (NIM untuk Student, NIP untuk Dosen)
     academicId: {
       type: String,
       unique: true,
-      sparse: true, // Boleh kosong untuk Admin
+      sparse: true, // Can be left blank for Admin
     },
-    // Informasi khusus Student
     academicInfo: {
-      batch: String, // Angkatan (misal: 2021)
-      program: String, // Jurusan (misal: Computer Science)
+      batch: String, // e.g. Batch 2027
+      program: String, // e.g. Computer science
     },
     profileImage: {
       type: String,
-      default: "default-profile.png",
+      default: "https://res.cloudinary.com/dz8dtz5ki/image/upload/v1765253617/profile_jm5amd.png",
     },
     isFirstLogin: {
       type: Boolean,
-      default: true, // User baru wajib ganti password
+      default: true,
     },
     isActive: {
       type: Boolean,
@@ -51,23 +52,18 @@ const userSchema = new mongoose.Schema(
     },
   },
   {
-    timestamps: true, // Otomatis buat createdAt dan updatedAt
+    timestamps: true,
   }
 );
 
-// --- MIDDLEWARE MONGOOSE ---
-
-// 1. Encrypt password sebelum disimpan (Create / Update password)
 userSchema.pre("save", async function (next) {
   if (!this.isModified("password")) {
-    return next();
+    return;
   }
   const salt = await bcrypt.genSalt(10);
   this.password = await bcrypt.hash(this.password, salt);
-  next();
 });
 
-// 2. Method untuk membandingkan password saat login
 userSchema.methods.matchPassword = async function (enteredPassword) {
   return await bcrypt.compare(enteredPassword, this.password);
 };
