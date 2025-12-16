@@ -8,6 +8,8 @@ import AppError from "./utils/appError.js";
 import { StatusCodes } from "http-status-codes";
 
 import authRoutes from "./routes/authRoutes.js";
+import projectRoutes from "./routes/projectRoutes.js";
+import adminRoutes from "./routes/adminRoutes.js";
 
 const app = express();
 
@@ -34,6 +36,8 @@ app.get("/", (req, res) => {
 });
 
 app.use("/api/v1/auth", authRoutes);
+app.use("/api/v1/admin", adminRoutes);
+app.use("/api/v1/projects", projectRoutes);
 
 // Handle Undefined Routes (404)
 app.all(/(.*)/, (req, res, next) => {

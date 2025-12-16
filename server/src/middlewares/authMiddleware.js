@@ -54,3 +54,31 @@ export const authorize = (...roles) => {
     next();
   };
 };
+
+// 3. Optional Auth (Cek token jika ada, pass jika tidak ada)
+export const optionalAuth = async (req, res, next) => {
+  let token;
+  if (req.headers.authorization && req.headers.authorization.startsWith("Bearer")) {
+    token = req.headers.authorization.split(" ")[1];
+  }
+
+  if (!token) {
+    return next(); // Lanjut sebagai Guest (req.user undefined)
+  }
+
+  try {
+    // Cek Blacklist
+    const isBlacklisted = await redisClient.get(`blacklist_${token}`);
+    if (isBlacklisted) return next(); // Anggap guest jika token blacklist
+
+    const decoded = jwt.verify(token, process.env.JWT_SECRET);
+    const user = await User.findById(decoded.id);
+
+    if (user) {
+      req.user = user; // Set user jika valid
+    }
+    next();
+  } catch (error) {
+    next(); // Jika token expired/salah, anggap guest saja
+  }
+};

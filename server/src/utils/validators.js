@@ -45,3 +45,29 @@ export const changePasswordSchema = z.object({
     .max(20, "Password max 20 characters")
     .regex(passwordRegex, "Password must contain at least 1 uppercase, 1 lowercase, and 1 number"),
 });
+
+export const projectSchema = z.object({
+  title: z.string().min(5, "Title is too short (min 5 chars)"),
+  description: z.string().min(20, "Description is too short (min 20 chars)"),
+  type: z.enum(["individual", "team"], {
+    errorMap: () => ({ message: "Type must be 'individual' or 'team'" }),
+  }),
+  lecturerId: z.string().min(1, "Lecturer ID is required"),
+
+  // Objek nested ini akan diparsing dari string JSON saat upload
+  academicInfo: z.object({
+    batch: z.string().min(1, "Batch is required"),
+    program: z.string().min(1, "Program is required"),
+    course: z.string().min(1, "Course is required"),
+  }),
+
+  // Array optional, hanya jika type == team
+  teamMembers: z
+    .array(
+      z.object({
+        name: z.string().min(1, "Member name is required"),
+        role: z.string().min(1, "Member role is required"),
+      })
+    )
+    .optional(),
+});

@@ -4,6 +4,7 @@ import app from "./src/app.js";
 import connectDB from "./src/config/db.js";
 import logger from "./src/utils/logger.js";
 import "./src/config/redis.js";
+import "./src/workers/userWorker.js";
 
 // Handle Uncaught Exception (Synchronous coding error)
 process.on("uncaughtException", (err) => {

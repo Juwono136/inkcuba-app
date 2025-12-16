@@ -33,7 +33,7 @@ export const createUser = async (req, res, next) => {
 
     res.status(StatusCodes.CREATED).json({
       success: true,
-      message: "User created successfully. Email sent (mocked).",
+      message: "User created successfully. Email sent.",
       data: {
         id: user._id,
         name: user.name,

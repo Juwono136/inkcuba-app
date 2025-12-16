@@ -64,7 +64,7 @@ const projectSchema = new mongoose.Schema(
 );
 
 projectSchema.index({ title: "text", description: "text" });
-projectSchema.index({ student: 1 });
+projectSchema.index({ student: 1, title: 1 }, { unique: true });
 projectSchema.index({ lecturer: 1 });
 
 const Project = mongoose.model("Project", projectSchema);
