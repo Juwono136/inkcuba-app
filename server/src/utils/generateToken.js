@@ -6,9 +6,9 @@ const generateToken = (userId) => {
     expiresIn: "15m",
   });
 
-  // Refresh Token (Long lifespan, e.g. 7 days - adjust to your needs)
+  // Refresh Token (Long lifespan, e.g. 3 days - adjust to your needs)
   const refreshToken = jwt.sign({ id: userId }, process.env.JWT_SECRET, {
-    expiresIn: "7d",
+    expiresIn: "3d",
   });
 
   return { accessToken, refreshToken };
