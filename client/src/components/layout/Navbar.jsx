@@ -1,200 +1,272 @@
-import { useState } from "react";
-import { Link, useNavigate, useLocation } from "react-router-dom";
-import { useSelector, useDispatch } from "react-redux";
-import { logoutUser, reset } from "../../features/auth/authSlice";
-import { FaBars, FaTimes } from "react-icons/fa";
-import { motion, AnimatePresence } from "framer-motion";
-import LogoImg from "../../assets/inkcuba-logo.png";
+import { useEffect, useRef, useState } from 'react';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
+import { useDispatch, useSelector } from 'react-redux';
+import { FiBell, FiChevronDown, FiEdit2, FiGrid, FiLogOut, FiUsers, FiBarChart2, FiBook, FiSend, FiMessageSquare, FiFolder, FiHome, FiInfo, FiLayers, FiMenu } from 'react-icons/fi';
+import { logout } from '../../features/auth/authSlice';
+import ConfirmModal from '../../common/ConfirmModal';
+import Sidebar from './Sidebar';
+import logo from '../../assets/images/inkcuba-logo.png';
 
-const Navbar = () => {
-  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
-  const navigate = useNavigate();
+function NavLink({ to, label, icon: Icon, active, onClick }) {
+  return (
+    <Link
+      to={to}
+      onClick={onClick}
+      className={`
+        relative flex items-center gap-2 px-3 py-2 rounded-lg text-sm font-medium transition-colors
+        ${active
+          ? 'text-[#3B613A] bg-[#3B613A]/8'
+          : 'text-[#303030]/70 hover:text-[#3B613A] hover:bg-[#F0F2E5]'
+        }
+      `}
+    >
+      {Icon && <Icon className="w-4 h-4 flex-shrink-0" />}
+      {label}
+      {active && (
+        <span className="absolute bottom-0 left-3 right-3 h-0.5 bg-[#3B613A] rounded-full" />
+      )}
+    </Link>
+  );
+}
+
+export default function Navbar() {
   const dispatch = useDispatch();
+  const navigate = useNavigate();
   const location = useLocation();
-  const { user } = useSelector((state) => state.auth);
+  const { user, isAuthenticated } = useSelector((state) => state.auth);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const [logoutModalOpen, setLogoutModalOpen] = useState(false);
+  const [userDropdownOpen, setUserDropdownOpen] = useState(false);
+  const [notifOpen, setNotifOpen] = useState(false);
+  const sidebarBtnRef = useRef(null);
+  const wasSidebarOpen = useRef(false);
+  const notifRef = useRef(null);
+  const profileRef = useRef(null);
 
-  const onLogout = () => {
-    dispatch(logoutUser());
-    dispatch(reset());
-    navigate("/login");
-    setIsMobileMenuOpen(false);
+  const pathname = location.pathname;
+
+  useEffect(() => {
+    setSidebarOpen(false);
+    setUserDropdownOpen(false);
+    setNotifOpen(false);
+  }, [pathname]);
+
+  useEffect(() => {
+    if (wasSidebarOpen.current && !sidebarOpen) {
+      sidebarBtnRef.current?.focus();
+    }
+    wasSidebarOpen.current = sidebarOpen;
+  }, [sidebarOpen]);
+
+  useEffect(() => {
+    const handleClick = (event) => {
+      const target = event.target;
+      if (notifRef.current && !notifRef.current.contains(target)) {
+        setNotifOpen(false);
+      }
+      if (profileRef.current && !profileRef.current.contains(target)) {
+        setUserDropdownOpen(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClick);
+    return () => document.removeEventListener('mousedown', handleClick);
+  }, []);
+
+  const handleLogoutConfirm = () => {
+    dispatch(logout());
+    setLogoutModalOpen(false);
+    setUserDropdownOpen(false);
+    navigate('/login');
   };
 
-  const navLinks = [
-    { name: "Home", path: "/" },
-    { name: "Projects", path: "/projects" },
-    { name: "Categories", path: "/categories" },
-    { name: "About", path: "/about" },
+  const isActive = (to) => {
+    if (to === '/') return pathname === '/';
+    return pathname === to || pathname.startsWith(to + '/');
+  };
+
+  const role = user?.role;
+
+  const adminMenus = [
+    { to: '/admin/users', label: 'User Management', icon: FiUsers },
+    { to: '/admin/supervision', label: 'Supervision Monitoring', icon: FiBarChart2 },
+    { to: '/admin/reports', label: 'Analytics & Reports', icon: FiBarChart2 },
   ];
 
-  const isActive = (path) => location.pathname === path;
+  const lecturerMenus = [
+    { to: '/lecturer/workspaces', label: 'My Workspaces', icon: FiGrid },
+    { to: '/lecturer/students', label: 'Student List', icon: FiUsers },
+    { to: '/lecturer/cards', label: 'Define Cards', icon: FiBook },
+    { to: '/lecturer/review', label: 'Review Submissions', icon: FiSend },
+  ];
+
+  const studentMenus = [
+    { to: '/student/workspace', label: 'My Workspace', icon: FiFolder },
+    { to: '/student/submit', label: 'Submit Portfolio', icon: FiSend },
+    { to: '/student/feedback', label: 'View Feedback', icon: FiMessageSquare },
+  ];
+
+  const roleMenus = role === 'admin' ? adminMenus : role === 'lecturer' ? lecturerMenus : role === 'student' ? studentMenus : [];
+
+  const mainNav = [
+    { to: '/', label: 'Home', icon: FiHome },
+    { to: '/projects', label: 'Projects', icon: FiLayers },
+    { to: '/about', label: 'About', icon: FiInfo },
+  ];
+
+  const closeSidebar = () => setSidebarOpen(false);
 
   return (
-    <nav className="sticky top-0 z-50 bg-white/95 backdrop-blur-sm border-b border-gray-100 w-full transition-all duration-300">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between h-16 md:h-20 items-center">
-          {/* 1. Logo (Animated Hover) */}
-          <div className="shrink-0 flex items-center cursor-pointer" onClick={() => navigate("/")}>
-            <motion.div whileHover={{ rotate: 10 }} transition={{ type: "spring", stiffness: 300 }}>
-              <img src={LogoImg} alt="logo-image" className="w-10 h-10" />
-            </motion.div>
-            <span className="text-xl md:text-2xl font-bold text-[#1B211A] tracking-tight">
-              InkCuba
-            </span>
-          </div>
-
-          {/* 2. Desktop Menu */}
-          <div className="hidden md:flex space-x-8 items-center">
-            {navLinks.map((link) => (
-              <Link
-                key={link.name}
-                to={link.path}
-                className={`relative text-sm font-medium transition-colors duration-200 
-                  ${
-                    isActive(link.path)
-                      ? "text-[#1B211A] font-bold"
-                      : "text-gray-500 hover:text-[#1B211A]"
-                  }
-                `}
-              >
-                {link.name}
-                {isActive(link.path) && (
-                  <motion.div
-                    layoutId="underline"
-                    className="absolute left-0 top-full block h-0.5 w-full bg-[#1B211A] mt-1"
-                  />
-                )}
-              </Link>
-            ))}
-
-            {/* Auth Buttons */}
-            <div className="ml-4 pl-4 border-l border-gray-200 flex items-center gap-3">
-              {user ? (
-                <div className="dropdown dropdown-end">
-                  <label
-                    tabIndex={0}
-                    className="btn btn-ghost btn-circle avatar border border-gray-200 hover:border-[#1B211A] transition-all"
-                  >
-                    <div className="w-10 rounded-full">
-                      <img
-                        src={`https://ui-avatars.com/api/?name=${user.name}&background=1B211A&color=fff`}
-                        alt="avatar"
-                      />
-                    </div>
-                  </label>
-                  <ul
-                    tabIndex={0}
-                    className="mt-3 z-1 p-2 shadow-lg menu menu-sm dropdown-content bg-white rounded-box w-52 border border-gray-100"
-                  >
-                    <li className="menu-title text-[#1B211A] opacity-50">Hello, {user.name}</li>
-                    <li>
-                      <Link
-                        to="/dashboard"
-                        className="hover:bg-[#F1F3E0] active:bg-[#1B211A] active:text-white"
-                      >
-                        Dashboard
-                      </Link>
-                    </li>
-                    <li>
-                      <button onClick={onLogout} className="text-red-500 hover:bg-red-50">
-                        Logout
-                      </button>
-                    </li>
-                  </ul>
-                </div>
-              ) : (
-                <Link to="/login">
-                  <motion.button
-                    whileHover={{ scale: 1.05 }}
-                    whileTap={{ scale: 0.95 }}
-                    className="btn bg-[#1B211A] text-[#F1F3E0] hover:bg-black border-none px-6 min-h-10 normal-case font-medium rounded-lg shadow-sm"
-                  >
-                    Sign In
-                  </motion.button>
-                </Link>
-              )}
-            </div>
-          </div>
-
-          {/* 3. Mobile Menu Toggle */}
-          <div className="md:hidden flex items-center">
+    <>
+      <header className="sticky top-0 z-40 w-full bg-base-100/95 backdrop-blur-md border-b border-base-200/60">
+        <div className="flex h-16 items-center justify-between gap-4 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
+          {/* Left */}
+          <div className="flex items-center gap-3 min-w-0 flex-shrink-0">
             <button
-              onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-              className="text-[#1B211A] focus:outline-none p-2"
+              type="button"
+              ref={sidebarBtnRef}
+              className={`flex items-center justify-center h-9 w-9 rounded-lg text-[#303030]/70 hover:bg-base-200 transition-colors ${isAuthenticated ? '' : 'lg:hidden'}`}
+              onClick={() => setSidebarOpen(true)}
+              aria-label="Open sidebar"
+              aria-expanded={sidebarOpen}
             >
-              {isMobileMenuOpen ? <FaTimes size={24} /> : <FaBars size={24} />}
+              <FiMenu className="w-5 h-5" />
             </button>
+            <Link to="/" className="flex items-center gap-2.5 min-w-0">
+              <img src={logo} alt="Inkcuba" className="h-9 w-9 object-contain flex-shrink-0" />
+              <span className="font-bold text-xl text-[#3B613A] tracking-tight hidden sm:block">Inkcuba</span>
+            </Link>
+          </div>
+
+          {/* Center */}
+          <nav className="hidden lg:flex items-center" aria-label="Main navigation">
+            <div className="flex items-center gap-1">
+              {mainNav.map((item) => (
+                <NavLink key={item.to} {...item} active={isActive(item.to)} />
+              ))}
+            </div>
+          </nav>
+
+          {/* Right */}
+          <div className="flex items-center gap-2 flex-shrink-0">
+            {isAuthenticated && user ? (
+              <>
+                {/* Notifications */}
+                <div className="relative" ref={notifRef}>
+                  <button
+                    type="button"
+                    className={`relative flex items-center justify-center h-9 w-9 rounded-lg transition-colors ${notifOpen ? 'bg-[#3B613A]/8 ring-2 ring-[#3B613A]/20' : 'hover:bg-base-200'}`}
+                    onClick={() => setNotifOpen((o) => !o)}
+                    aria-haspopup="true"
+                    aria-expanded={notifOpen}
+                    aria-label="Notifications"
+                  >
+                    <FiBell className="w-5 h-5 text-[#303030]/70" />
+                    <span className="absolute top-2 right-2 h-2 w-2 rounded-full bg-[#3B613A]" aria-hidden="true" />
+                  </button>
+                  {notifOpen && (
+                    <div className="absolute right-0 top-full mt-2 z-50 w-80 max-w-[90vw] rounded-2xl bg-base-100 border border-base-200/80 shadow-lg overflow-hidden transition-all duration-150 ease-out transform origin-top-right">
+                      <div className="px-4 py-3 bg-[#F0F2E5]/50 flex items-center justify-between">
+                        <p className="font-semibold text-[#303030]">Notifications</p>
+                        <span className="text-xs text-[#303030]/50">0 new</span>
+                      </div>
+                      <div className="p-4">
+                        <p className="text-sm text-[#303030]/60">No notifications yet.</p>
+                        <p className="text-xs text-[#303030]/40 mt-1">When lecturers/admin actions happen, updates will appear here.</p>
+                      </div>
+                    </div>
+                  )}
+                </div>
+
+                {/* Profile dropdown (shortcuts only) */}
+                <div className="relative" ref={profileRef}>
+                  <button
+                    type="button"
+                    className={`
+                      flex items-center gap-2 rounded-full p-1 pl-1.5 pr-2 transition-colors
+                      ${userDropdownOpen ? 'bg-[#3B613A]/8 ring-2 ring-[#3B613A]/20' : 'hover:bg-base-200'}
+                    `}
+                    onClick={() => setUserDropdownOpen((o) => !o)}
+                    aria-haspopup="true"
+                    aria-expanded={userDropdownOpen}
+                  >
+                    <div className="w-9 h-9 rounded-full bg-[#3B613A] text-base-100 flex items-center justify-center flex-shrink-0">
+                      <span className="text-sm font-semibold">{user.name?.charAt(0).toUpperCase()}</span>
+                    </div>
+                    <span className="hidden sm:block text-sm font-medium text-[#303030] truncate max-w-[120px]">
+                      {user.name?.split(' ')[0]}
+                    </span>
+                    <FiChevronDown className="hidden sm:block w-4 h-4 text-[#303030]/50" />
+                  </button>
+
+                  {userDropdownOpen && (
+                    <div className="absolute right-0 top-full mt-2 z-50 w-64 rounded-2xl bg-base-100 border border-base-200/80 shadow-lg overflow-hidden transition-all duration-150 ease-out transform origin-top-right">
+                      <div className="px-4 py-3 bg-[#F0F2E5]/50">
+                        <p className="font-semibold text-[#303030] truncate">{user.name}</p>
+                        <p className="text-xs text-base-content/60 truncate mt-0.5">{user.email}</p>
+                        <span className="inline-block mt-1.5 px-2 py-0.5 text-xs font-medium bg-[#3B613A]/10 text-[#3B613A] rounded-md capitalize">{user.role}</span>
+                      </div>
+                      <div className="py-1">
+                        <Link
+                          to="/dashboard"
+                          className={`flex items-center gap-3 px-4 py-2.5 text-sm transition-colors ${isActive('/dashboard') ? 'text-[#3B613A] bg-[#3B613A]/5 font-medium' : 'hover:bg-base-200'}`}
+                          onClick={() => setUserDropdownOpen(false)}
+                        >
+                          <FiGrid className="w-4 h-4 flex-shrink-0" /> Dashboard
+                        </Link>
+                        <Link
+                          to="/profile"
+                          className={`flex items-center gap-3 px-4 py-2.5 text-sm transition-colors ${isActive('/profile') ? 'text-[#3B613A] bg-[#3B613A]/5 font-medium' : 'hover:bg-base-200'}`}
+                          onClick={() => setUserDropdownOpen(false)}
+                        >
+                          <FiEdit2 className="w-4 h-4 flex-shrink-0" /> Edit profile
+                        </Link>
+                      </div>
+                      <div className="border-t border-base-200">
+                        <button
+                          type="button"
+                          className="flex items-center gap-3 px-4 py-2.5 text-sm text-error hover:bg-error/5 w-full text-left transition-colors"
+                          onClick={() => { setUserDropdownOpen(false); setLogoutModalOpen(true); }}
+                        >
+                          <FiLogOut className="w-4 h-4 flex-shrink-0" /> Sign out
+                        </button>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </>
+            ) : (
+              <Link
+                to="/login"
+                className="inline-flex items-center gap-2 h-9 px-5 rounded-lg bg-[#3B613A] hover:bg-[#4a7549] text-white text-sm font-medium transition-colors shadow-sm"
+              >
+                Sign in
+              </Link>
+            )}
           </div>
         </div>
-      </div>
+      </header>
 
-      {/* 4. Mobile Menu Dropdown (Animasi Slide Down, Tidak Full Screen) */}
-      <AnimatePresence>
-        {isMobileMenuOpen && (
-          <motion.div
-            initial={{ height: 0, opacity: 0 }}
-            animate={{ height: "auto", opacity: 1 }}
-            exit={{ height: 0, opacity: 0 }}
-            transition={{ duration: 0.3, ease: "easeInOut" }}
-            className="md:hidden bg-white border-b border-gray-100 overflow-hidden shadow-lg absolute w-full left-0 top-full"
-          >
-            <div className="px-4 py-4 space-y-2 flex flex-col">
-              {navLinks.map((link) => (
-                <Link
-                  key={link.name}
-                  to={link.path}
-                  onClick={() => setIsMobileMenuOpen(false)}
-                  className={`block px-4 py-3 rounded-lg text-base font-medium transition-all
-                    ${
-                      isActive(link.path)
-                        ? "text-[#1B211A] bg-[#F1F3E0]"
-                        : "text-gray-600 hover:text-[#1B211A] hover:bg-gray-50"
-                    }
-                  `}
-                >
-                  {link.name}
-                </Link>
-              ))}
+      <Sidebar
+        open={sidebarOpen}
+        onClose={closeSidebar}
+        mainNav={mainNav}
+        roleMenus={roleMenus}
+        isAuthenticated={isAuthenticated}
+        user={user}
+        isActive={isActive}
+      />
 
-              <div className="border-t border-gray-100 pt-4 mt-2">
-                {user ? (
-                  <div className="space-y-3">
-                    <div className="flex items-center gap-3 px-2">
-                      <div className="w-8 h-8 rounded-full bg-[#1B211A] text-white flex items-center justify-center text-xs font-bold">
-                        {user.name.charAt(0)}
-                      </div>
-                      <span className="font-semibold text-[#1B211A]">{user.name}</span>
-                    </div>
-                    <Link
-                      to="/dashboard"
-                      onClick={() => setIsMobileMenuOpen(false)}
-                      className="btn btn-sm btn-outline w-full normal-case"
-                    >
-                      Dashboard
-                    </Link>
-                    <button
-                      onClick={onLogout}
-                      className="btn btn-sm btn-error btn-outline w-full normal-case"
-                    >
-                      Logout
-                    </button>
-                  </div>
-                ) : (
-                  <Link
-                    to="/login"
-                    onClick={() => setIsMobileMenuOpen(false)}
-                    className="btn w-full bg-[#1B211A] text-white hover:bg-black border-none normal-case"
-                  >
-                    Sign In
-                  </Link>
-                )}
-              </div>
-            </div>
-          </motion.div>
-        )}
-      </AnimatePresence>
-    </nav>
+      <ConfirmModal
+        open={logoutModalOpen}
+        onClose={() => setLogoutModalOpen(false)}
+        onConfirm={handleLogoutConfirm}
+        title="Sign out"
+        message="Are you sure you want to sign out? You will need to sign in again to access your account."
+        confirmLabel="Sign out"
+        cancelLabel="Cancel"
+        variant="primary"
+      />
+    </>
   );
-};
-
-export default Navbar;
+}
