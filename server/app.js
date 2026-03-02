@@ -7,6 +7,7 @@ import config from './config/index.js';
 import { notFound, errorHandler } from './middlewares/errorMiddleware.js';
 import authRoutes from './routes/authRoutes.js';
 import adminUserRoutes from './routes/adminUserRoutes.js';
+import { getAvatar } from './controllers/uploadsController.js';
 
 const app = express();
 
@@ -39,9 +40,9 @@ const apiLimiter = rateLimit({
 });
 app.use('/api', apiLimiter);
 
-// Body parsing
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+// Body parsing (higher limit for profile avatar base64)
+app.use(express.json({ limit: '350kb' }));
+app.use(express.urlencoded({ extended: true, limit: '350kb' }));
 
 // Health / root
 app.get('/', (req, res) => {
@@ -51,6 +52,9 @@ app.get('/', (req, res) => {
 // API routes
 app.use('/api/auth', authRoutes);
 app.use('/api/admin/users', adminUserRoutes);
+
+// Serve avatar images from MinIO (public read)
+app.get('/api/uploads/avatars/:filename', getAvatar);
 
 // 404 and global error handler (must be last)
 app.use(notFound);

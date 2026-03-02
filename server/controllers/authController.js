@@ -3,7 +3,8 @@ import User from '../models/User.js';
 import config from '../config/index.js';
 import logger from '../logger/index.js';
 import { generateSecureToken, hashToken } from '../utils/tokenUtils.js';
-import { sendVerificationEmail, sendPasswordResetEmail } from '../services/emailService.js';
+import { sendVerificationEmail, sendPasswordResetEmail, sendPasswordChangedEmail } from '../services/emailService.js';
+import { uploadAvatarToMinio, deleteAvatarFromMinio } from '../services/avatarService.js';
 
 function createTokenPayload(user) {
   return {
@@ -384,6 +385,194 @@ export async function me(req, res, next) {
     res.json({ success: true, user: toSafeUser(user) });
   } catch (err) {
     logger.error('Me error', { error: err.message });
+    next(err);
+  }
+}
+
+// ----- Update profile (protected): name, avatarUrl (MinIO key only) -----
+const AVATAR_KEY_REGEX = /^[a-zA-Z0-9._-]+$/;
+
+export async function updateProfile(req, res, next) {
+  try {
+    const { name, avatarUrl } = req.body || {};
+    const user = await User.findById(req.user.id);
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: 'User not found.',
+      });
+    }
+    if (!user.isActive) {
+      return res.status(403).json({
+        success: false,
+        message: 'Account is deactivated.',
+      });
+    }
+
+    const updates = {};
+    if (name !== undefined) {
+      const trimmed = typeof name === 'string' ? name.trim() : '';
+      if (!trimmed) {
+        return res.status(400).json({
+          success: false,
+          message: 'Name is required and cannot be empty.',
+        });
+      }
+      if (trimmed.length > 120) {
+        return res.status(400).json({
+          success: false,
+          message: 'Name cannot exceed 120 characters.',
+        });
+      }
+      updates.name = trimmed;
+    }
+    if (avatarUrl !== undefined) {
+      if (avatarUrl === null || avatarUrl === '') {
+        updates.avatarUrl = '';
+      } else if (typeof avatarUrl === 'string') {
+        const key = avatarUrl.replace(/^avatars\//, '').split('/')[0];
+        if (!key || !AVATAR_KEY_REGEX.test(key)) {
+          return res.status(400).json({
+            success: false,
+            message: 'Invalid profile image key. Please upload a new photo.',
+          });
+        }
+        updates.avatarUrl = key;
+      } else {
+        return res.status(400).json({
+          success: false,
+          message: 'Invalid profile image.',
+        });
+      }
+    }
+
+    if (Object.keys(updates).length === 0) {
+      return res.json({ success: true, user: toSafeUser(user) });
+    }
+
+    if (updates.avatarUrl !== undefined && user.avatarUrl && !user.avatarUrl.startsWith('data:')) {
+      await deleteAvatarFromMinio(user.avatarUrl);
+    }
+
+    Object.assign(user, updates);
+    await user.save({ validateBeforeSave: true });
+
+    res.json({
+      success: true,
+      message: 'Profile updated successfully.',
+      user: toSafeUser(user),
+    });
+  } catch (err) {
+    if (err.name === 'ValidationError') {
+      const first = Object.values(err.errors)[0];
+      return res.status(400).json({
+        success: false,
+        message: first?.message || 'Validation failed.',
+      });
+    }
+    logger.error('Update profile error', { error: err.message });
+    next(err);
+  }
+}
+
+// ----- Upload avatar (protected). Stores in MinIO, returns key for avatarUrl. Deletes previous avatar from MinIO. -----
+export async function uploadAvatar(req, res, next) {
+  try {
+    if (!req.file || !req.file.buffer) {
+      return res.status(400).json({
+        success: false,
+        message: 'No image file provided. Please select an image (JPEG, PNG, WebP or GIF, max 2 MB).',
+      });
+    }
+
+    const userId = req.user.id;
+    const key = await uploadAvatarToMinio(
+      req.file.buffer,
+      userId,
+      req.file.mimetype || 'image/jpeg'
+    );
+
+    const existingUser = await User.findById(userId).select('avatarUrl').lean();
+    if (existingUser?.avatarUrl && !existingUser.avatarUrl.startsWith('data:')) {
+      await deleteAvatarFromMinio(existingUser.avatarUrl);
+    }
+
+    res.status(201).json({
+      success: true,
+      avatarUrl: key,
+    });
+  } catch (err) {
+    logger.error('Upload avatar error', { error: err.message });
+    next(err);
+  }
+}
+
+// ----- Change password (protected). Forces re-login: no new token returned. -----
+const PASSWORD_COMPLEXITY = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9]).{8,}$/;
+
+export async function changePassword(req, res, next) {
+  try {
+    const { currentPassword, newPassword } = req.body || {};
+    if (!currentPassword || !newPassword) {
+      return res.status(400).json({
+        success: false,
+        message: 'Current password and new password are required.',
+      });
+    }
+    if (!PASSWORD_COMPLEXITY.test(newPassword)) {
+      return res.status(400).json({
+        success: false,
+        message:
+          'New password must be at least 8 characters and include uppercase, lowercase, number, and special character.',
+      });
+    }
+    if (currentPassword === newPassword) {
+      return res.status(400).json({
+        success: false,
+        message: 'New password must be different from your current password.',
+      });
+    }
+
+    const user = await User.findById(req.user.id).select('+password');
+    if (!user) {
+      return res.status(404).json({
+        success: false,
+        message: 'User not found.',
+      });
+    }
+    if (!user.isActive) {
+      return res.status(403).json({
+        success: false,
+        message: 'Account is deactivated.',
+      });
+    }
+
+    const match = await user.comparePassword(currentPassword);
+    if (!match) {
+      return res.status(400).json({
+        success: false,
+        message: 'Current password is incorrect.',
+      });
+    }
+
+    user.password = newPassword;
+    await user.save();
+
+    sendPasswordChangedEmail(user.email, user.name);
+
+    res.json({
+      success: true,
+      message: 'Password changed successfully. Please sign in again with your new password.',
+    });
+  } catch (err) {
+    if (err.name === 'ValidationError') {
+      const first = Object.values(err.errors)[0];
+      return res.status(400).json({
+        success: false,
+        message: first?.message || 'Validation failed.',
+      });
+    }
+    logger.error('Change password error', { error: err.message });
     next(err);
   }
 }

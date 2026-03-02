@@ -10,8 +10,12 @@ import {
   resendVerification,
   me,
   updatePasswordAfterLogin,
+  updateProfile,
+  changePassword,
+  uploadAvatar as uploadAvatarHandler,
 } from '../controllers/authController.js';
-import { protect, restrictTo } from '../middlewares/authMiddleware.js';
+import { protect } from '../middlewares/authMiddleware.js';
+import { uploadAvatar } from '../middlewares/uploadMiddleware.js';
 
 const router = express.Router();
 
@@ -34,6 +38,19 @@ router.get('/verify-email/:token', verifyEmail);
 router.post('/resend-verification', resendVerification);
 
 router.get('/me', protect, me);
+router.patch('/me', protect, updateProfile);
+router.post('/me/avatar', protect, (req, res, next) => {
+  uploadAvatar(req, res, (err) => {
+    if (err) {
+      return res.status(400).json({
+        success: false,
+        message: err.message || 'Invalid file. Use an image (JPEG, PNG, WebP or GIF), max 2 MB.',
+      });
+    }
+    next();
+  });
+}, uploadAvatarHandler);
 router.post('/me/password', protect, updatePasswordAfterLogin);
+router.post('/change-password', protect, changePassword);
 
 export default router;

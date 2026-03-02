@@ -3,6 +3,13 @@ import { Link } from 'react-router-dom';
 import { FiX, FiLayout, FiLogIn } from 'react-icons/fi';
 import logo from '../../assets/images/inkcuba-logo.png';
 
+function getSidebarAvatarUrl(avatarUrl) {
+  if (!avatarUrl) return null;
+  if (avatarUrl.startsWith('data:') || avatarUrl.startsWith('http')) return avatarUrl;
+  const base = import.meta.env.VITE_API_URL || '';
+  return `${base}/api/uploads/avatars/${avatarUrl}`;
+}
+
 function SidebarLink({ to, label, icon: Icon, active, onClick }) {
   return (
     <Link
@@ -140,8 +147,16 @@ export default function Sidebar({
         {isAuthenticated && user ? (
           <div className="border-t border-base-200/60 p-3">
             <div className="flex items-center gap-3 px-2 py-2">
-              <div className="w-9 h-9 rounded-full bg-[#3B613A] text-white flex items-center justify-center flex-shrink-0 text-sm font-semibold">
-                {user.name?.charAt(0).toUpperCase()}
+              <div className="w-9 h-9 rounded-full bg-[#3B613A] text-white flex items-center justify-center flex-shrink-0 text-sm font-semibold overflow-hidden">
+                {getSidebarAvatarUrl(user?.avatarUrl) ? (
+                  <img
+                    src={getSidebarAvatarUrl(user.avatarUrl)}
+                    alt=""
+                    className="w-full h-full object-cover"
+                  />
+                ) : (
+                  user.name?.charAt(0).toUpperCase()
+                )}
               </div>
               <div className="min-w-0">
                 <p className="text-sm font-medium text-[#303030] truncate">{user.name}</p>

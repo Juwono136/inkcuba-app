@@ -5,6 +5,7 @@ import {
   getVerificationEmailHtml,
   getPasswordResetEmailHtml,
   getNewAdminUserEmailHtml,
+  getPasswordChangedEmailHtml,
 } from './email/templates/index.js';
 
 let transporter = null;
@@ -97,6 +98,16 @@ export async function sendNewAdminUserEmail(to, name, password) {
     name: name || 'User',
     email: to,
     password,
+    loginUrl,
+  });
+  return sendMail({ to, subject, html });
+}
+
+export async function sendPasswordChangedEmail(to, name) {
+  const loginUrl = getLoginUrl();
+  const subject = 'Your Inkcuba password was changed';
+  const html = getPasswordChangedEmailHtml({
+    name: name || 'User',
     loginUrl,
   });
   return sendMail({ to, subject, html });

@@ -100,6 +100,42 @@ export const updatePasswordAfterLogin = createAsyncThunk(
   }
 );
 
+export const updateProfile = createAsyncThunk(
+  'auth/updateProfile',
+  async (payload, { rejectWithValue }) => {
+    try {
+      const { data } = await api.patch('/api/auth/me', payload);
+      return data;
+    } catch (err) {
+      return rejectWithValue(getErrorMessage(err));
+    }
+  }
+);
+
+export const uploadAvatar = createAsyncThunk(
+  'auth/uploadAvatar',
+  async (formData, { rejectWithValue }) => {
+    try {
+      const { data } = await api.post('/api/auth/me/avatar', formData);
+      return data;
+    } catch (err) {
+      return rejectWithValue(getErrorMessage(err));
+    }
+  }
+);
+
+export const changePassword = createAsyncThunk(
+  'auth/changePassword',
+  async (payload, { rejectWithValue }) => {
+    try {
+      const { data } = await api.post('/api/auth/change-password', payload);
+      return data;
+    } catch (err) {
+      return rejectWithValue(getErrorMessage(err));
+    }
+  }
+);
+
 const initialState = {
   user: null,
   accessToken: (typeof localStorage !== 'undefined' && localStorage.getItem('inkcuba_token')) || null,
@@ -207,7 +243,20 @@ const authSlice = createSlice({
       .addCase(updatePasswordAfterLogin.fulfilled, (state, action) =>
         setFulfilled(state, action, true)
       )
-      .addCase(updatePasswordAfterLogin.rejected, setRejected);
+      .addCase(updatePasswordAfterLogin.rejected, setRejected)
+      .addCase(updateProfile.pending, setPending)
+      .addCase(updateProfile.fulfilled, (state, action) => {
+        state.loading = false;
+        state.error = null;
+        if (action.payload?.user) state.user = action.payload.user;
+      })
+      .addCase(updateProfile.rejected, setRejected)
+      .addCase(changePassword.pending, setPending)
+      .addCase(changePassword.fulfilled, (state) => {
+        state.loading = false;
+        state.error = null;
+      })
+      .addCase(changePassword.rejected, setRejected);
   },
 });
 

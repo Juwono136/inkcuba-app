@@ -1,11 +1,19 @@
 import { useEffect, useRef, useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
-import { FiBell, FiChevronDown, FiEdit2, FiGrid, FiLogOut, FiUsers, FiBarChart2, FiBook, FiSend, FiMessageSquare, FiFolder, FiHome, FiInfo, FiLayers, FiMenu } from 'react-icons/fi';
+import { FiBell, FiChevronDown, FiEdit2, FiGrid, FiLogOut, FiUsers, FiBarChart2, FiBook, FiSend, FiMessageSquare, FiFolder, FiHome, FiInfo, FiLayers } from 'react-icons/fi';
+import { HiMenuAlt2 } from "react-icons/hi";
 import { logout } from '../../features/auth/authSlice';
 import ConfirmModal from '../../common/ConfirmModal';
 import Sidebar from './Sidebar';
 import logo from '../../assets/images/inkcuba-logo.png';
+
+function getNavbarAvatarUrl(avatarUrl) {
+  if (!avatarUrl) return null;
+  if (avatarUrl.startsWith('data:') || avatarUrl.startsWith('http')) return avatarUrl;
+  const base = import.meta.env.VITE_API_URL || '';
+  return `${base}/api/uploads/avatars/${avatarUrl}`;
+}
 
 function NavLink({ to, label, icon: Icon, active, onClick }) {
   return (
@@ -121,7 +129,7 @@ export default function Navbar() {
       <header className="sticky top-0 z-40 w-full bg-base-100/95 backdrop-blur-md border-b border-base-200/60">
         <div className="flex h-16 items-center justify-between gap-4 px-4 sm:px-6 lg:px-8 max-w-7xl mx-auto">
           {/* Left */}
-          <div className="flex items-center gap-3 min-w-0 flex-shrink-0">
+          <div className="flex items-center gap-1 min-w-0 flex-shrink-0">
             <button
               type="button"
               ref={sidebarBtnRef}
@@ -130,7 +138,7 @@ export default function Navbar() {
               aria-label="Open sidebar"
               aria-expanded={sidebarOpen}
             >
-              <FiMenu className="w-5 h-5" />
+              <HiMenuAlt2 className="w-6 h-6" />
             </button>
             <Link to="/" className="flex items-center gap-2.5 min-w-0">
               <img src={logo} alt="Inkcuba" className="h-9 w-9 object-contain flex-shrink-0" />
@@ -190,8 +198,16 @@ export default function Navbar() {
                     aria-haspopup="true"
                     aria-expanded={userDropdownOpen}
                   >
-                    <div className="w-9 h-9 rounded-full bg-[#3B613A] text-base-100 flex items-center justify-center flex-shrink-0">
-                      <span className="text-sm font-semibold">{user.name?.charAt(0).toUpperCase()}</span>
+                    <div className="w-9 h-9 rounded-full bg-[#3B613A] text-base-100 flex items-center justify-center flex-shrink-0 overflow-hidden">
+                      {getNavbarAvatarUrl(user?.avatarUrl) ? (
+                        <img
+                          src={getNavbarAvatarUrl(user.avatarUrl)}
+                          alt=""
+                          className="w-full h-full object-cover"
+                        />
+                      ) : (
+                        <span className="text-sm font-semibold">{user.name?.charAt(0).toUpperCase()}</span>
+                      )}
                     </div>
                     <span className="hidden sm:block text-sm font-medium text-[#303030] truncate max-w-[120px]">
                       {user.name?.split(' ')[0]}

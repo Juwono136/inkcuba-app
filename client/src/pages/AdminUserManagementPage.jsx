@@ -315,7 +315,7 @@ export default function AdminUserManagementPage() {
                 <div className="py-16 text-center">
                   <p className="text-[#303030]/60 font-medium">No users found</p>
                   <p className="text-sm text-[#303030]/50 mt-1">
-                    Try adjusting search or filters.
+                    Please try again with different search criteria.
                   </p>
                 </div>
               ) : (

@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { Link, useNavigate, Navigate } from 'react-router-dom';
+import { Link, useNavigate, Navigate, useLocation } from 'react-router-dom';
 import { useDispatch, useSelector } from 'react-redux';
 import toast from 'react-hot-toast';
 import AuthLayout from '../components/layout/AuthLayout';
@@ -9,8 +9,17 @@ import { login, clearError } from '../features/auth/authSlice';
 export default function LoginPage() {
   const dispatch = useDispatch();
   const navigate = useNavigate();
+  const location = useLocation();
   const { loading, error, isAuthenticated } = useSelector((state) => state.auth);
   const [form, setForm] = useState({ email: '', password: '' });
+
+  useEffect(() => {
+    const message = location.state?.message;
+    if (message) {
+      toast.success(message);
+      navigate(location.pathname, { replace: true, state: {} });
+    }
+  }, [location.state?.message, location.pathname, navigate]);
 
   useEffect(() => {
     if (error) {
