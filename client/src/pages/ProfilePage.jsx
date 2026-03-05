@@ -286,7 +286,7 @@ export default function ProfilePage() {
                       )}
                     </div>
                     <p className="text-xs text-[#303030]/50 mt-1 text-center sm:text-left">
-                      JPG, PNG, WebP or GIF · max {MAX_AVATAR_SIZE_MB} MB
+                      *) JPG/JPEG, PNG, WebP or GIF | Max {MAX_AVATAR_SIZE_MB} MB
                     </p>
                   </div>
 
@@ -307,7 +307,7 @@ export default function ProfilePage() {
                       </p>
                       <p className="mt-1 font-medium text-[#303030] break-all">{user.email}</p>
                       <p className="text-xs text-[#303030]/50 mt-1">
-                        Email cannot be changed here.
+                        *) Email cannot be changed.
                       </p>
                     </div>
                     <div className="rounded-xl bg-base-200/50 border border-base-200/80 p-4">
@@ -355,8 +355,7 @@ export default function ProfilePage() {
                 <div>
                   <h2 className="text-xl font-bold text-[#303030]">Change password</h2>
                   <p className="text-sm text-[#303030]/60">
-                    After changing your password, you will need to sign in again. We will send you an
-                    email confirmation.
+                    *) After changing your password, you will need to sign in again.
                   </p>
                 </div>
               </div>

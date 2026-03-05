@@ -12,6 +12,7 @@ import ScrollToTopButton from './components/layout/ScrollToTopButton';
 import HomePage from './pages/HomePage';
 import DashboardPage from './pages/DashboardPage';
 import ProjectsPage from './pages/ProjectsPage';
+import PortfolioDetailPage from './pages/PortfolioDetailPage';
 import AboutPage from './pages/AboutPage';
 import ProfilePage from './pages/ProfilePage';
 import LoginPage from './pages/LoginPage';
@@ -21,6 +22,12 @@ import VerifyEmailPage from './pages/VerifyEmailPage';
 import FirstLoginPasswordPage from './pages/FirstLoginPasswordPage';
 import PlaceholderPage from './pages/PlaceholderPage';
 import AdminUserManagementPage from './pages/AdminUserManagementPage';
+import LecturerWorkspacesPage from './pages/LecturerWorkspacesPage';
+import LecturerCreateWorkspacePage from './pages/LecturerCreateWorkspacePage';
+import LecturerWorkspaceDetailPage from './pages/LecturerWorkspaceDetailPage';
+import LecturerReviewSubmissionsPage from './pages/LecturerReviewSubmissionsPage';
+import StudentWorkspacePage from './pages/StudentWorkspacePage';
+import StudentSubmitPortfolioPage from './pages/StudentSubmitPortfolioPage';
 import './App.css';
 
 function AppRoutes() {
@@ -52,6 +59,7 @@ function AppRoutes() {
       <Route path="/" element={<HomePage />} />
       <Route path="/dashboard" element={<ProtectedRoute><DashboardPage /></ProtectedRoute>} />
       <Route path="/projects" element={<ProjectsPage />} />
+      <Route path="/projects/:id" element={<PortfolioDetailPage />} />
       <Route path="/about" element={<AboutPage />} />
       <Route path="/profile" element={<ProtectedRoute><ProfilePage /></ProtectedRoute>} />
       <Route path="/login" element={<LoginPage />} />
@@ -78,13 +86,15 @@ function AppRoutes() {
       <Route path="/admin/supervision" element={<ProtectedRoute allowedRoles={['admin']}><PlaceholderPage title="Supervision Monitoring" message="Monitor submission status. (Coming soon)" /></ProtectedRoute>} />
       <Route path="/admin/reports" element={<ProtectedRoute allowedRoles={['admin']}><PlaceholderPage title="Analytics & Reports" message="Generate reports. (Coming soon)" /></ProtectedRoute>} />
 
-      <Route path="/lecturer/workspaces" element={<ProtectedRoute allowedRoles={['lecturer']}><PlaceholderPage title="My Workspaces" message="Create and manage workspaces. (Coming soon)" /></ProtectedRoute>} />
+      <Route path="/lecturer/workspaces" element={<ProtectedRoute allowedRoles={['lecturer']}><LecturerWorkspacesPage /></ProtectedRoute>} />
+      <Route path="/lecturer/workspaces/create" element={<ProtectedRoute allowedRoles={['lecturer']}><LecturerCreateWorkspacePage /></ProtectedRoute>} />
+      <Route path="/lecturer/workspaces/:id" element={<ProtectedRoute allowedRoles={['lecturer']}><LecturerWorkspaceDetailPage /></ProtectedRoute>} />
       <Route path="/lecturer/students" element={<ProtectedRoute allowedRoles={['lecturer']}><PlaceholderPage title="Student List" message="Upload Excel or add students manually. (Coming soon)" /></ProtectedRoute>} />
       <Route path="/lecturer/cards" element={<ProtectedRoute allowedRoles={['lecturer']}><PlaceholderPage title="Define Cards" message="Create and assign cards. (Coming soon)" /></ProtectedRoute>} />
-      <Route path="/lecturer/review" element={<ProtectedRoute allowedRoles={['lecturer']}><PlaceholderPage title="Review Submissions" message="Review and approve submissions. (Coming soon)" /></ProtectedRoute>} />
+      <Route path="/lecturer/review" element={<ProtectedRoute allowedRoles={['lecturer']}><LecturerReviewSubmissionsPage /></ProtectedRoute>} />
 
-      <Route path="/student/workspace" element={<ProtectedRoute allowedRoles={['student']}><PlaceholderPage title="My Workspace" message="View your workspace and cards. (Coming soon)" /></ProtectedRoute>} />
-      <Route path="/student/submit" element={<ProtectedRoute allowedRoles={['student']}><PlaceholderPage title="Submit Portfolio" message="Submit your project or portfolio. (Coming soon)" /></ProtectedRoute>} />
+      <Route path="/student/workspace" element={<ProtectedRoute allowedRoles={['student']}><StudentWorkspacePage /></ProtectedRoute>} />
+      <Route path="/student/submit" element={<ProtectedRoute allowedRoles={['student']}><StudentSubmitPortfolioPage /></ProtectedRoute>} />
       <Route path="/student/feedback" element={<ProtectedRoute allowedRoles={['student']}><PlaceholderPage title="View Feedback" message="See feedback and submit revisions. (Coming soon)" /></ProtectedRoute>} />
 
       <Route path="*" element={<Navigate to="/" replace />} />

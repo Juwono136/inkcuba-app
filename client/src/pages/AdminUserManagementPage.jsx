@@ -9,6 +9,7 @@ import SearchInput from '../common/SearchInput';
 import TablePagination from '../common/TablePagination';
 import ConfirmModal from '../common/ConfirmModal';
 import FormInput from '../common/FormInput';
+import Combobox from '../common/Combobox';
 import {
   fetchUsers,
   createUser,
@@ -55,6 +56,13 @@ function refetch(dispatch, { page, limit, search, role, status, sortBy, sortOrde
   );
 }
 
+function getAvatarUrl(avatarUrl) {
+  if (!avatarUrl) return null;
+  if (avatarUrl.startsWith('data:') || avatarUrl.startsWith('http')) return avatarUrl;
+  const base = import.meta.env.VITE_API_URL || '';
+  return `${base}/api/uploads/avatars/${avatarUrl}`;
+}
+
 export default function AdminUserManagementPage() {
   const dispatch = useDispatch();
   const currentUserId = useSelector((state) => state.auth.user?.id);
@@ -78,6 +86,7 @@ export default function AdminUserManagementPage() {
     name: '',
     email: '',
     role: 'lecturer',
+    program: '',
     isActive: true,
   });
   const [confirmToggle, setConfirmToggle] = useState({ open: false, user: null, nextStatus: true });
@@ -85,6 +94,18 @@ export default function AdminUserManagementPage() {
   const [deleteConfirmText, setDeleteConfirmText] = useState('');
   const [confirmSave, setConfirmSave] = useState(false);
   const [actionLoading, setActionLoading] = useState(false);
+
+  const programOptions = useMemo(
+    () =>
+      Array.from(
+        new Set(
+          (items || [])
+            .map((u) => u.program)
+            .filter((p) => typeof p === 'string' && p.trim().length > 0)
+        )
+      ).sort((a, b) => a.localeCompare(b)),
+    [items]
+  );
 
   const queryParams = useMemo(
     () => ({ page, limit, search, role, status, sortBy, sortOrder }),
@@ -121,8 +142,8 @@ export default function AdminUserManagementPage() {
     setFormState({
       name: '',
       email: '',
-      password: '',
       role: 'lecturer',
+      program: '',
       isActive: true,
     });
     setFormOpen(true);
@@ -134,6 +155,7 @@ export default function AdminUserManagementPage() {
       name: user.name || '',
       email: user.email || '',
       role: user.role,
+      program: user.program || '',
       isActive: user.isActive,
     });
     setFormOpen(true);
@@ -144,6 +166,7 @@ export default function AdminUserManagementPage() {
       name: formState.name.trim(),
       email: formState.email.trim(),
       role: formState.role,
+      program: formState.program?.trim() ?? '',
       isActive: formState.isActive,
     };
     setActionLoading(true);
@@ -158,7 +181,7 @@ export default function AdminUserManagementPage() {
       setConfirmSave(false);
       setFormOpen(false);
       setEditingUser(null);
-      setFormState({ name: '', email: '', role: 'lecturer', isActive: true });
+      setFormState({ name: '', email: '', role: 'lecturer', program: '', isActive: true });
       refetch(dispatch, queryParams);
     } catch (err) {
       toast.error(err || 'Failed to save user');
@@ -226,7 +249,7 @@ export default function AdminUserManagementPage() {
               User Management
             </h1>
             <p className="mt-1 text-sm text-[#303030]/60">
-              Create, edit, assign roles, and activate or deactivate users.
+              Manage students and lecturers across programs. Add, edit, or manage users.
             </p>
           </div>
           <button
@@ -250,7 +273,7 @@ export default function AdminUserManagementPage() {
                   label="Search"
                   value={localSearch}
                   onChange={setLocalSearch}
-                  placeholder="By name or email..."
+                  placeholder="Search by name or email"
                 />
               </div>
               <div className="lg:col-span-8 xl:col-span-9 grid grid-cols-1 sm:grid-cols-3 gap-4">
@@ -310,157 +333,271 @@ export default function AdminUserManagementPage() {
                 <Loader size="lg" text="Loading users..." />
               </div>
             )}
-            <div className="overflow-x-auto">
-              {!loading && items.length === 0 ? (
-                <div className="py-16 text-center">
-                  <p className="text-[#303030]/60 font-medium">No users found</p>
-                  <p className="text-sm text-[#303030]/50 mt-1">
-                    Please try again with different search criteria.
-                  </p>
-                </div>
-              ) : (
-                <table className="table table-auto w-full">
-                  <thead>
-                    <tr className="bg-base-200/50 border-b border-base-200">
-                      <th className="w-10 text-center text-xs font-semibold uppercase tracking-wider text-[#303030]/70 py-4 whitespace-nowrap">
-                        No
-                      </th>
-                      <th className="text-xs font-semibold uppercase tracking-wider text-[#303030]/70 py-4 whitespace-nowrap">
-                        Name
-                      </th>
-                      <th className="hidden sm:table-cell text-xs font-semibold uppercase tracking-wider text-[#303030]/70 py-4">
-                        Email
-                      </th>
-                      <th className="hidden sm:table-cell text-xs font-semibold uppercase tracking-wider text-[#303030]/70 py-4 whitespace-nowrap">
-                        Role
-                      </th>
-                      <th className="text-xs font-semibold uppercase tracking-wider text-[#303030]/70 py-4 whitespace-nowrap">
-                        Status
-                      </th>
-                      <th className="hidden lg:table-cell text-xs font-semibold uppercase tracking-wider text-[#303030]/70 py-4 whitespace-nowrap">
-                        Last login
-                      </th>
-                      <th className="hidden md:table-cell text-xs font-semibold uppercase tracking-wider text-[#303030]/70 py-4 whitespace-nowrap">
-                        Created
-                      </th>
-                      <th className="text-right text-xs font-semibold uppercase tracking-wider text-[#303030]/70 py-4 whitespace-nowrap">
-                        Actions
-                      </th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {items.map((user, index) => (
-                      <tr
-                        key={user.id}
-                        className="border-b border-base-200/60 hover:bg-base-200/30 transition-colors"
-                      >
-                        <td className="py-4 px-3 text-center align-middle text-xs text-[#303030]/70">
-                          {(page - 1) * limit + index + 1}
-                        </td>
-                        <td className="py-4 align-middle">
-                          <div className="flex items-start gap-3">
-                            <div className="w-9 h-9 rounded-full bg-[#3B613A]/10 flex items-center justify-center text-xs font-semibold text-[#3B613A] uppercase flex-shrink-0">
-                              {(user.name || '?')
-                                .split(' ')
-                                .filter(Boolean)
-                                .slice(0, 2)
-                                .map((part) => part[0])
-                                .join('')}
-                            </div>
-                            <div className="flex flex-col gap-0.5 min-w-0">
-                              <span className="font-medium text-[#303030] truncate max-w-[160px] sm:max-w-[220px]">
-                                {user.name}
-                              </span>
-                              <span className="sm:hidden text-xs text-[#303030]/60 break-all">
-                                {user.email}
-                              </span>
-                              <span className="sm:hidden inline-flex items-center gap-1 text-[11px] text-[#303030]/60 mt-0.5">
-                                <span className="inline-flex px-1.5 py-0.5 rounded-full bg-base-200 text-[#303030]/80 capitalize">
-                                  {user.role}
-                                </span>
-                              </span>
-                            </div>
-                          </div>
-                        </td>
-                        <td className="hidden sm:table-cell py-4 text-sm text-[#303030]/80 break-all max-w-xs">
-                          {user.email}
-                        </td>
-                        <td className="hidden sm:table-cell py-4">
-                          <span className="badge badge-ghost badge-sm capitalize font-medium">
-                            {user.role}
-                          </span>
-                        </td>
-                        <td className="py-4 align-middle">
-                          <span
-                            className={`badge badge-sm font-medium ${
-                              user.isActive
-                                ? 'badge-success text-success-content'
-                                : 'badge-ghost text-[#303030]/60'
-                            }`}
-                          >
-                            {user.isActive ? 'Active' : 'Inactive'}
-                          </span>
-                        </td>
-                        <td className="hidden lg:table-cell py-4 text-xs text-[#303030]/60 whitespace-nowrap">
-                          {user.lastLoginAt
-                            ? new Date(user.lastLoginAt).toLocaleString()
-                            : '—'}
-                        </td>
-                        <td className="hidden md:table-cell py-4 text-xs text-[#303030]/60 whitespace-nowrap">
-                          {user.createdAt
-                            ? new Date(user.createdAt).toLocaleDateString()
-                            : '—'}
-                        </td>
-                        <td className="py-4 text-right align-middle">
-                          <div className="inline-flex items-center justify-end gap-1.5">
-                            <button
-                              type="button"
-                              className="btn btn-ghost btn-xs sm:btn-sm btn-circle text-[#3B613A] hover:bg-[#3B613A]/10"
-                              onClick={() => openEditForm(user)}
-                              aria-label="Edit user"
-                            >
-                              <FiEdit2 className="w-4 h-4" />
-                            </button>
-                            <button
-                              type="button"
-                              className="btn btn-ghost btn-xs sm:btn-sm btn-circle text-[#303030]/70 hover:bg-base-200"
-                              onClick={() =>
-                                setConfirmToggle({
-                                  open: true,
-                                  user,
-                                  nextStatus: !user.isActive,
-                                })
-                              }
-                              aria-label={user.isActive ? 'Deactivate user' : 'Activate user'}
-                            >
-                              {user.isActive ? (
-                                <FiUserX className="w-4 h-4" />
-                              ) : (
-                                <FiUserCheck className="w-4 h-4" />
-                              )}
-                            </button>
-                            <button
-                              type="button"
-                              className="btn btn-ghost btn-xs sm:btn-sm btn-circle text-error hover:bg-error/10 disabled:text-error/40"
-                              onClick={() => setConfirmDelete({ open: true, user })}
-                              disabled={user.id === currentUserId}
-                              title={
-                                user.id === currentUserId
-                                  ? 'You cannot delete your own account'
-                                  : 'Delete user'
-                              }
-                              aria-label="Delete user"
-                            >
-                              <FiTrash2 className="w-4 h-4" />
-                            </button>
-                          </div>
-                        </td>
+            {!loading && items.length === 0 ? (
+              <div className="py-16 text-center">
+                <p className="text-[#303030]/60 font-medium">No users found</p>
+                <p className="text-sm text-[#303030]/50 mt-1">
+                  Please try again with different search criteria.
+                </p>
+              </div>
+            ) : (
+              <>
+                {/* Desktop / tablet: table layout (design match: dark header, NAME/EMAIL column, status pills) */}
+                <div className="hidden sm:block overflow-x-auto rounded-b-2xl">
+                  <table className="w-full text-sm border-collapse">
+                    <thead>
+                      <tr className="bg-[#374151] text-white">
+                        <th className="text-left text-xs font-semibold uppercase tracking-wider py-3.5 px-4 whitespace-nowrap rounded-tl-xl">
+                          Name / Email
+                        </th>
+                        <th className="text-left text-xs font-semibold uppercase tracking-wider py-3.5 px-4 whitespace-nowrap">
+                          Role
+                        </th>
+                        <th className="text-left text-xs font-semibold uppercase tracking-wider py-3.5 px-4 whitespace-nowrap">
+                          Program
+                        </th>
+                        <th className="text-left text-xs font-semibold uppercase tracking-wider py-3.5 px-4 whitespace-nowrap">
+                          Status
+                        </th>
+                        <th className="text-left text-xs font-semibold uppercase tracking-wider py-3.5 px-4 whitespace-nowrap hidden lg:table-cell">
+                          Last login
+                        </th>
+                        <th className="text-left text-xs font-semibold uppercase tracking-wider py-3.5 px-4 whitespace-nowrap hidden md:table-cell">
+                          Created
+                        </th>
+                        <th className="text-right text-xs font-semibold uppercase tracking-wider py-3.5 px-4 whitespace-nowrap rounded-tr-xl">
+                          Actions
+                        </th>
                       </tr>
-                    ))}
-                  </tbody>
-                </table>
-              )}
-            </div>
+                    </thead>
+                    <tbody>
+                      {items.map((user) => (
+                        <tr
+                          key={user.id}
+                          className="border-b border-base-200/70 hover:bg-base-200/25 transition-colors bg-base-100"
+                        >
+                          <td className="py-3.5 px-4 align-middle">
+                            <div className="flex items-center gap-3 min-w-0">
+                              <div className="w-10 h-10 rounded-full bg-[#3B613A]/15 flex items-center justify-center text-sm font-semibold text-[#3B613A] uppercase flex-shrink-0 overflow-hidden">
+                                {getAvatarUrl(user.avatarUrl) ? (
+                                  <img
+                                    src={getAvatarUrl(user.avatarUrl)}
+                                    alt=""
+                                    className="w-full h-full object-cover"
+                                  />
+                                ) : (
+                                  (user.name || '?')
+                                    .split(' ')
+                                    .filter(Boolean)
+                                    .slice(0, 2)
+                                    .map((part) => part[0])
+                                    .join('')
+                                )}
+                              </div>
+                              <div className="min-w-0 flex flex-col gap-0.5">
+                                <span className="font-semibold text-[#303030] truncate block">
+                                  {user.name}
+                                </span>
+                                <span className="text-xs text-[#303030]/60 truncate block">
+                                  {user.email}
+                                </span>
+                              </div>
+                            </div>
+                          </td>
+                          <td className="py-3.5 px-4 align-middle">
+                            <span className="capitalize font-medium text-[#303030]/90">
+                              {user.role}
+                            </span>
+                          </td>
+                          <td className="py-3.5 px-4 align-middle text-[#303030]/80 max-w-[160px] truncate" title={user.program || '—'}>
+                            {user.program || '—'}
+                          </td>
+                          <td className="py-3.5 px-4 align-middle">
+                            <span
+                              className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium text-white ${
+                                user.isActive
+                                  ? 'bg-emerald-500'
+                                  : 'bg-amber-500'
+                              }`}
+                            >
+                              {user.isActive ? 'Active' : 'Inactive'}
+                            </span>
+                          </td>
+                          <td className="py-3.5 px-4 align-middle text-xs text-[#303030]/60 whitespace-nowrap hidden lg:table-cell">
+                            {user.lastLoginAt
+                              ? new Date(user.lastLoginAt).toLocaleString()
+                              : '—'}
+                          </td>
+                          <td className="py-3.5 px-4 align-middle text-xs text-[#303030]/60 whitespace-nowrap hidden md:table-cell">
+                            {user.createdAt
+                              ? new Date(user.createdAt).toLocaleDateString()
+                              : '—'}
+                          </td>
+                          <td className="py-3.5 px-4 align-middle text-right">
+                            <div className="inline-flex items-center justify-end gap-1">
+                              <button
+                                type="button"
+                                className="p-2 rounded-lg text-[#3B613A] hover:bg-[#3B613A]/10 transition-colors"
+                                onClick={() => openEditForm(user)}
+                                aria-label="Edit user"
+                              >
+                                <FiEdit2 className="w-4 h-4" />
+                              </button>
+                              <button
+                                type="button"
+                                className="p-2 rounded-lg text-[#303030]/60 hover:bg-base-200 transition-colors"
+                                onClick={() =>
+                                  setConfirmToggle({
+                                    open: true,
+                                    user,
+                                    nextStatus: !user.isActive,
+                                  })
+                                }
+                                aria-label={user.isActive ? 'Deactivate user' : 'Activate user'}
+                              >
+                                {user.isActive ? (
+                                  <FiUserX className="w-4 h-4" />
+                                ) : (
+                                  <FiUserCheck className="w-4 h-4" />
+                                )}
+                              </button>
+                              <button
+                                type="button"
+                                className="p-2 rounded-lg text-red-600 hover:bg-red-50 transition-colors disabled:opacity-40 disabled:hover:bg-transparent"
+                                onClick={() => setConfirmDelete({ open: true, user })}
+                                disabled={user.id === currentUserId}
+                                title={
+                                  user.id === currentUserId
+                                    ? 'You cannot delete your own account'
+                                    : 'Delete user'
+                                }
+                                aria-label="Delete user"
+                              >
+                                <FiTrash2 className="w-4 h-4" />
+                              </button>
+                            </div>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
+
+                {/* Mobile: stacked cards */}
+                <div className="sm:hidden divide-y divide-base-200">
+                  {items.map((user) => (
+                    <div
+                      key={user.id}
+                      className="py-3 px-3 flex flex-col gap-2 bg-base-100"
+                    >
+                        <div className="flex items-start gap-3">
+                        <div className="w-9 h-9 rounded-full bg-[#3B613A]/10 flex items-center justify-center text-xs font-semibold text-[#3B613A] uppercase flex-shrink-0 overflow-hidden">
+                          {getAvatarUrl(user.avatarUrl) ? (
+                            <img
+                              src={getAvatarUrl(user.avatarUrl)}
+                              alt=""
+                              className="w-full h-full object-cover"
+                            />
+                          ) : (
+                            (user.name || '?')
+                              .split(' ')
+                              .filter(Boolean)
+                              .slice(0, 2)
+                              .map((part) => part[0])
+                              .join('')
+                          )}
+                        </div>
+                        <div className="min-w-0 flex-1">
+                          <div className="flex items-start justify-between gap-2">
+                            <div className="min-w-0">
+                              <p className="text-sm font-semibold text-[#303030] truncate">
+                                {user.name}
+                              </p>
+                              <p className="text-xs text-[#303030]/60 break-all">
+                                {user.email}
+                              </p>
+                            </div>
+                            <span
+                              className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium text-white ${
+                                user.isActive ? 'bg-emerald-500' : 'bg-amber-500'
+                              }`}
+                            >
+                              {user.isActive ? 'Active' : 'Inactive'}
+                            </span>
+                          </div>
+                          <div className="mt-1 flex flex-wrap items-center gap-2 text-[11px] text-[#5e6c84]">
+                            <span className="inline-flex px-1.5 py-0.5 rounded-full bg-base-200 text-[#303030]/80 capitalize">
+                              {user.role}
+                            </span>
+                            {user.program && (
+                              <span className="truncate max-w-[60%]">
+                                {user.program}
+                              </span>
+                            )}
+                          </div>
+                          <div className="mt-2 flex flex-wrap justify-between gap-2 text-[11px] text-[#9ca3af]">
+                            <span>
+                              Created:{' '}
+                              {user.createdAt
+                                ? new Date(user.createdAt).toLocaleDateString()
+                                : '—'}
+                            </span>
+                            <span>
+                              Last login:{' '}
+                              {user.lastLoginAt
+                                ? new Date(user.lastLoginAt).toLocaleDateString()
+                                : '—'}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                      <div className="flex justify-end gap-1.5 pt-1">
+                        <button
+                          type="button"
+                          className="btn btn-ghost btn-xs btn-circle text-[#3B613A] hover:bg-[#3B613A]/10"
+                          onClick={() => openEditForm(user)}
+                          aria-label="Edit user"
+                        >
+                          <FiEdit2 className="w-4 h-4" />
+                        </button>
+                        <button
+                          type="button"
+                          className="btn btn-ghost btn-xs btn-circle text-[#303030]/70 hover:bg-base-200"
+                          onClick={() =>
+                            setConfirmToggle({
+                              open: true,
+                              user,
+                              nextStatus: !user.isActive,
+                            })
+                          }
+                          aria-label={user.isActive ? 'Deactivate user' : 'Activate user'}
+                        >
+                          {user.isActive ? (
+                            <FiUserX className="w-4 h-4" />
+                          ) : (
+                            <FiUserCheck className="w-4 h-4" />
+                          )}
+                        </button>
+                        <button
+                          type="button"
+                          className="btn btn-ghost btn-xs btn-circle text-error hover:bg-error/10 disabled:text-error/40"
+                          onClick={() => setConfirmDelete({ open: true, user })}
+                          disabled={user.id === currentUserId}
+                          title={
+                            user.id === currentUserId
+                              ? 'You cannot delete your own account'
+                              : 'Delete user'
+                          }
+                          aria-label="Delete user"
+                        >
+                          <FiTrash2 className="w-4 h-4" />
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </>
+            )}
           </div>
 
           {/* Pagination */}
@@ -571,6 +708,23 @@ export default function AdminUserManagementPage() {
                     <option value="lecturer">Lecturer</option>
                     <option value="student">Student</option>
                   </select>
+                </div>
+                <div>
+                  <Combobox
+                    id="user-form-program"
+                    label="Program"
+                    labelAlt="(e.g. Computer Science, Graphic Design)"
+                    placeholder="Study program or department"
+                    value={formState.program}
+                    onChange={(v) =>
+                      setFormState((s) => ({ ...s, program: v }))
+                    }
+                    options={programOptions}
+                    inputClassName="input input-bordered w-full rounded-xl h-11 text-sm pr-10 border-base-300 focus:border-[#3B613A]/50 focus:outline-none transition-colors"
+                  />
+                  <p className="text-xs text-[#303030]/50 mt-1">
+                    Type a new program or choose from the dropdown.
+                  </p>
                 </div>
                 <div className="form-control">
                   <label className="label cursor-pointer justify-start gap-3">

@@ -10,6 +10,7 @@ function toAdminSafeUser(user) {
     name: u.name,
     email: u.email,
     role: u.role,
+    program: u.program || '',
     isActive: u.isActive !== false,
     emailVerified: !!u.emailVerified,
     avatarUrl: u.avatarUrl || '',
@@ -39,11 +40,15 @@ export async function listUsers(req, res, next) {
 
     if (search) {
       const regex = new RegExp(search.trim(), 'i');
-      filter.$or = [{ name: regex }, { email: regex }];
+      filter.$or = [{ name: regex }, { email: regex }, { program: regex }];
     }
 
     if (role && ['admin', 'lecturer', 'student'].includes(role)) {
       filter.role = role;
+    }
+
+    if (req.query.program && typeof req.query.program === 'string' && req.query.program.trim()) {
+      filter.program = new RegExp(req.query.program.trim(), 'i');
     }
 
     if (status === 'active') {
@@ -114,7 +119,7 @@ function generateStrongPassword(length = 12) {
 
 export async function createUser(req, res, next) {
   try {
-    const { name, email, role = 'student', isActive = true } = req.body || {};
+    const { name, email, role = 'student', isActive = true, program } = req.body || {};
 
     if (!name || !email) {
       return res.status(400).json({
@@ -146,6 +151,7 @@ export async function createUser(req, res, next) {
       email: email.trim().toLowerCase(),
       password: generatedPassword,
       role,
+      program: typeof program === 'string' ? program.trim() : '',
       isActive: !!isActive,
       emailVerified: true,
       mustChangePassword: true,
@@ -175,7 +181,7 @@ export async function createUser(req, res, next) {
 export async function updateUser(req, res, next) {
   try {
     const { id } = req.params;
-    const { name, email, role, isActive } = req.body || {};
+    const { name, email, role, isActive, program } = req.body || {};
 
     const update = {};
     if (name != null) update.name = name.trim();
@@ -191,6 +197,7 @@ export async function updateUser(req, res, next) {
       update.role = role;
     }
     if (isActive != null) update.isActive = !!isActive;
+    if (program !== undefined) update.program = typeof program === 'string' ? program.trim() : '';
 
     const user = await User.findByIdAndUpdate(id, update, {
       new: true,

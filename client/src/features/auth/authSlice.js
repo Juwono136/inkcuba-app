@@ -83,7 +83,8 @@ export const getMe = createAsyncThunk(
       const { data } = await api.get('/api/auth/me');
       return data;
     } catch (err) {
-      return rejectWithValue(getErrorMessage(err));
+      const status = err.response?.status;
+      return rejectWithValue({ message: getErrorMessage(err), status });
     }
   }
 );
@@ -230,13 +231,17 @@ const authSlice = createSlice({
         state.user = action.payload?.user ?? null;
         state.isAuthenticated = !!state.accessToken;
       })
-      .addCase(getMe.rejected, (state) => {
+      .addCase(getMe.rejected, (state, action) => {
         state.authLoading = false;
-        state.user = null;
-        state.accessToken = null;
-        state.isAuthenticated = false;
-        if (typeof localStorage !== 'undefined') {
-          localStorage.removeItem('inkcuba_token');
+        const status = action.payload?.status;
+        const isRateLimit = status === 429;
+        if (!isRateLimit) {
+          state.user = null;
+          state.accessToken = null;
+          state.isAuthenticated = false;
+          if (typeof localStorage !== 'undefined') {
+            localStorage.removeItem('inkcuba_token');
+          }
         }
       })
       .addCase(updatePasswordAfterLogin.pending, setPending)

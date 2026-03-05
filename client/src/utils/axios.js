@@ -36,6 +36,9 @@ export function setupAxiosInterceptors(store) {
       if (error.response?.status === 401) {
         store.dispatch({ type: 'auth/logout' });
       }
+      if (error.response?.status === 429) {
+        console.warn('Rate limited; do not treat as auth failure.');
+      }
       return Promise.reject(error);
     }
   );

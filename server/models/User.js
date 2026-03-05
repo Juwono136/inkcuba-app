@@ -54,6 +54,19 @@ const userSchema = new mongoose.Schema(
       type: Date,
       default: null,
     },
+    program: {
+      type: String,
+      trim: true,
+      maxlength: [120, 'Program cannot exceed 120 characters'],
+      default: '',
+    },
+    /** Student code / ID (e.g. NIM) — only used when role is student */
+    studentCode: {
+      type: String,
+      trim: true,
+      maxlength: [80, 'Student code cannot exceed 80 characters'],
+      default: '',
+    },
   },
   { timestamps: true }
 );

@@ -73,7 +73,7 @@ const config = {
   },
   rateLimit: {
     windowMs: 15 * 60 * 1000,
-    max: 100,
+    max: 400,
   },
   jwt: {
     secret: process.env.JWT_SECRET || (isProd ? null : 'dev-secret-change-in-production'),

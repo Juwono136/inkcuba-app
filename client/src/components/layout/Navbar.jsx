@@ -6,6 +6,8 @@ import { HiMenuAlt2 } from "react-icons/hi";
 import { logout } from '../../features/auth/authSlice';
 import ConfirmModal from '../../common/ConfirmModal';
 import Sidebar from './Sidebar';
+import NotificationListModal from '../notifications/NotificationListModal';
+import { api } from '../../utils/axios';
 import logo from '../../assets/images/inkcuba-logo.png';
 
 function getNavbarAvatarUrl(avatarUrl) {
@@ -46,6 +48,9 @@ export default function Navbar() {
   const [logoutModalOpen, setLogoutModalOpen] = useState(false);
   const [userDropdownOpen, setUserDropdownOpen] = useState(false);
   const [notifOpen, setNotifOpen] = useState(false);
+  const [notifListModalOpen, setNotifListModalOpen] = useState(false);
+  const [latestNotifs, setLatestNotifs] = useState([]);
+  const [notifUnreadCount, setNotifUnreadCount] = useState(0);
   const sidebarBtnRef = useRef(null);
   const wasSidebarOpen = useRef(false);
   const notifRef = useRef(null);
@@ -80,6 +85,16 @@ export default function Navbar() {
     document.addEventListener('mousedown', handleClick);
     return () => document.removeEventListener('mousedown', handleClick);
   }, []);
+
+  useEffect(() => {
+    if (!isAuthenticated) return;
+    api.get('/api/notifications/latest')
+      .then(({ data }) => {
+        setLatestNotifs(data.data || []);
+        setNotifUnreadCount(data.unreadCount ?? 0);
+      })
+      .catch(() => {});
+  }, [isAuthenticated, notifOpen, notifListModalOpen]);
 
   const handleLogoutConfirm = () => {
     dispatch(logout());
@@ -170,17 +185,42 @@ export default function Navbar() {
                     aria-label="Notifications"
                   >
                     <FiBell className="w-5 h-5 text-[#303030]/70" />
-                    <span className="absolute top-2 right-2 h-2 w-2 rounded-full bg-[#3B613A]" aria-hidden="true" />
+                    {notifUnreadCount > 0 && <span className="absolute top-2 right-2 h-2 w-2 rounded-full bg-[#3B613A]" aria-hidden="true" />}
                   </button>
                   {notifOpen && (
                     <div className="absolute right-0 top-full mt-2 z-50 w-80 max-w-[90vw] rounded-2xl bg-base-100 border border-base-200/80 shadow-lg overflow-hidden transition-all duration-150 ease-out transform origin-top-right">
                       <div className="px-4 py-3 bg-[#F0F2E5]/50 flex items-center justify-between">
                         <p className="font-semibold text-[#303030]">Notifications</p>
-                        <span className="text-xs text-[#303030]/50">0 new</span>
+                        <span className="text-xs text-[#303030]/50">{notifUnreadCount > 0 ? `${notifUnreadCount} new` : '0 new'}</span>
                       </div>
-                      <div className="p-4">
-                        <p className="text-sm text-[#303030]/60">No notifications yet.</p>
-                        <p className="text-xs text-[#303030]/40 mt-1">When lecturers/admin actions happen, updates will appear here.</p>
+                      <div className="max-h-72 overflow-y-auto">
+                        {latestNotifs.length === 0 ? (
+                          <div className="p-4">
+                            <p className="text-sm text-[#303030]/60">No notifications yet.</p>
+                            <p className="text-xs text-[#303030]/40 mt-1">When lecturers add you to a workspace or review your submission, updates will appear here.</p>
+                          </div>
+                        ) : (
+                          <ul className="divide-y divide-base-200/60">
+                            {latestNotifs.slice(0, 5).map((n) => (
+                              <li key={n.id} className={n.read ? '' : 'bg-[#3B613A]/5'}>
+                                <div className="px-4 py-2.5 text-left">
+                                  <p className="font-medium text-sm text-[#172b4d]">{n.title}</p>
+                                  {n.body && <p className="text-xs text-[#5e6c84] mt-0.5 line-clamp-2">{n.body}</p>}
+                                  <p className="text-xs text-[#5e6c84] mt-1">{n.createdAt ? new Date(n.createdAt).toLocaleString() : ''}</p>
+                                </div>
+                              </li>
+                            ))}
+                          </ul>
+                        )}
+                        <div className="p-2 border-t border-base-200/60">
+                          <button
+                            type="button"
+                            className="btn btn-ghost btn-sm w-full text-[#3B613A] font-medium"
+                            onClick={() => { setNotifOpen(false); setNotifListModalOpen(true); }}
+                          >
+                            More / View all
+                          </button>
+                        </div>
                       </div>
                     </div>
                   )}
@@ -272,6 +312,8 @@ export default function Navbar() {
         user={user}
         isActive={isActive}
       />
+
+      <NotificationListModal open={notifListModalOpen} onClose={() => setNotifListModalOpen(false)} />
 
       <ConfirmModal
         open={logoutModalOpen}
